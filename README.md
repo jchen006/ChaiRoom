@@ -1,2 +1,2 @@
-# chaiRoom
-kinoma.js application and api for chairRoom
+# ChaiRoom
+kinoma.js application and api for ChaiRoom
