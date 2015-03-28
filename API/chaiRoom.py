@@ -34,12 +34,10 @@ class Seat(db.Model):
 		self.status = "open"
 		self.reserved_by = ""
 
-db.create_all()
-manager = APIManager(flask_sqlalchemy_db=db)
-manager.init_app(app)
+#import everything CSV in cafe and seats 
+def import_cafes(self): 
 
-cafe_api = manager.create_api(Cafe, methods=['GET', 'POST'])
-seat_api = manager.create_api(Seat, methods=['GET'])
+def import_seats(self):
 
 @app.route('/healthCheck', methods=['GET'])
 def healthCheck():
@@ -48,23 +46,27 @@ def healthCheck():
 #Gets all cafes in the database
 @app.route('/chaiRoom/api/cafes', method=['GET'])
 def get_cafes(): 
+	return jsonify({"cafes": cafes})
 
-#Gets one specific cafe in the database
+#Gets one specific cafe in the database based on the ID
 @app.route('/chaiRoom/api/cafe/<id>', method=['GET'])
 def get_cafe(id): 
 
+#returns status of the seat ID 
+@app.route('/chaiRoom/api/cafe/<id>/seat/<seat_id>', method=['GET'])
+def get_seat(id, seat_id): 
+
+
 #Reserves the ID of a specific seat
-@app.route('/reserve/<id>', method=['POST'])
-def reserve(id):
+#Request: {"phoneNumber": "XXX-XXX-XXXX", "cafe_id": "", "seat_id:": "", "action":"reserve/cancel/confirm"}
+@app.route('/chaiRoom/api/seat/', method=['POST'])
+def reserve():
+	if request.method == "POST":
 
-@app.route('/reserve/confirm/<id>', method=['POST'])
-def confirm(id):
-
-#Cancels the reservation of a seat 
-@app.route('/reserve/cancel/<id>', method=['POST'])
-def cancel(id):
 
 
 
 if __name__ == '__main__':
     app.run(debug=True)
+    cafes = import_cafes()
+    seats = import_seats()
