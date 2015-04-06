@@ -1,18 +1,18 @@
 // KPR Script file
 exports.pins = {
-    seats: {type: "I2C", address: 0x48}
+    chairs: {type: "I2C", address: 0x48}
 };
 
 exports.configure = function () {
-	this.seats.init();
+	this.chairs.init();
 }
 
 exports.close = function() {
-    this.seats.close();
+    this.chairs.close();
 }
 
 exports.read = function () {
-    var data = this.seats.readWordDataSMB(0);
+    var data = this.chairs.readWordDataSMB(0);
 	var value = ((data & 0xFF) << 4) | ((data >> 8) >> 4);
 	if (value & 0x800) {
 	    value -= 1;
