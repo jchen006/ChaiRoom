@@ -36,6 +36,6 @@ exports.close = function() {
 
 exports.read = function() {
 	var axes = this.pinsSimulator.delegate("getValue");
-	trace("Temp: " + axes.temperature);
-	return axes.temperature;				
+	trace("Seats: " + axes.seats);
+	return axes.seats;				
 };
