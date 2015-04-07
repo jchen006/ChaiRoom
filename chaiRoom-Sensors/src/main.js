@@ -14,8 +14,10 @@ var centerStyle = new Style({ color:"black", horizontal:"center", vertical:"midd
 // Handlers
 Handler.bind("/seats", {
 	onInvoke: function(handler, message) {
-		var newOpenSeats = message.requestObject;
+		var data = message.requestObject;
+		newOpenSeats = data["chairs"];
 		model.data.newOpenSeats = newOpenSeats;
+		model.data.cafeName = data["cafeName"];
 		var numberOfReservedSeats = model.data.reservedSeats;
 		
 		var totalSeats = model.data.totalSeats;
@@ -34,7 +36,8 @@ var MainScreen = Container.template(function($) { return {
 	contents: [
 	Column($,{ style: titleStyle, top:5,
 		contents: [
-		Label($, { style: titleStyle,string:"Seats" },),
+		this.cafeName = Label($, { style: titleStyle},),
+		this.total = Label($, {top:5,  style:labelStyle },),
 		Line($,{ style: titleStyle, 
 			contents: [
 			Picture($,{height:70,width:70,url:openSeatIcon,style: centerStyle,aspect: 'fit'}),
@@ -54,7 +57,10 @@ var MainScreen = Container.template(function($) { return {
 		onModelChanged: { value: function(container) {
 			container.available.string  =  "Open : "  + model.data.openSeats.toFixed(0) ;
 			container.reserved.string  = "Reserved : " + model.data.reservedSeats.toFixed(0) ;
-			container.occupied.string  = " Occupied : " + model.data.occupiedSeats.toFixed(0) ;
+			container.occupied.string  = "Occupied : " + model.data.occupiedSeats.toFixed(0) ;
+			var total = parseInt(model.data.occupiedSeats.toFixed(0)) + parseInt(model.data.reservedSeats.toFixed(0)) + parseInt(model.data.openSeats.toFixed(0)) ;
+			container.total.string  = "Total Seats: " + String(total);
+			container.cafeName.string  = model.data.cafeName;
 		}},
 	}),
 }});
@@ -81,6 +87,7 @@ ApplicationBehavior.prototype =  Object.create(MODEL.ApplicationBehavior.prototy
 			availableSeats: 0,
 			reservedSeats: 4,
 			totalSeats: 30,
+			name:"",
 		};
 		var message = new MessageWithObject("pins:configure", {
 			chairs: {

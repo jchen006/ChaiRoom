@@ -26,14 +26,14 @@ exports.pins = {
 exports.configure = function() {
 	this.pinsSimulator = shell.delegate("addSimulatorPart", {
 		header : { 
-			label : "Seats", 
-			name : "Northside Cafe", 
+			label : "Open Seats", 
+			name : "", 
 			iconVariant : PinsSimulators.SENSOR_MODULE
 		},
 		axes : [
 			new PinsSimulators.AnalogInputAxisDescription(
 				{
-					valueLabel : "Available Chairs",
+					valueLabel : "Northside Cafe",
 					valueID : "chairs",
 					defaultControl : PinsSimulators.SLIDER,
 					minValue : 0,
@@ -51,5 +51,5 @@ exports.close = function() {
 
 exports.read = function() {
 	var axes = this.pinsSimulator.delegate("getValue");
-	return axes.chairs;				
+	return {chairs:axes.chairs, cafeName:"North Side Cafe"};			
 };

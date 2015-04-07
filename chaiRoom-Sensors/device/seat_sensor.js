@@ -22,5 +22,5 @@ exports.read = function () {
 
     value *= 0.0625;
 
-    return value;
+    return {chairs:value, cafeName:"North Side Cafe"};
 }
