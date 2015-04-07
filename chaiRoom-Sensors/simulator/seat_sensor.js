@@ -38,7 +38,7 @@ exports.configure = function() {
 					defaultControl : PinsSimulators.SLIDER,
 					minValue : 0,
 					maxValue : 30,
-					value : 0
+					value : 30
 				}
 			),
 		]
@@ -51,6 +51,5 @@ exports.close = function() {
 
 exports.read = function() {
 	var axes = this.pinsSimulator.delegate("getValue");
-	trace("Available seats: " + axes.chairs);
 	return axes.chairs;				
 };
