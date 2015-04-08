@@ -11,7 +11,6 @@ var applicationIconSkin = new Skin({ texture: applicationIconTexture, width: 80,
 var tabTexture = (screenScale == 2) ? new Texture('assets/tabs.png', 1) : (screenScale == 1.5) ? new Texture('assets/tabs.png', 1) : new Texture('assets/tabs.png', 1);
 var tabSkin = new CONTROL.Skin(tabTexture, THEME.tabDisabledEffect, THEME.tabEnabledEffect, THEME.tabSelectedEffect);
 var blackSkin = new Skin({ fill: '#30A8BE',});
-
 var whiteSkin = new Skin({ fill: '#30A8BE',});
 
 var Body = SCREEN.EmptyBody.template(function($) { return { skin: blackSkin, }});
