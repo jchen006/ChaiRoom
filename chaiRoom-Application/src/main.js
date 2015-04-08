@@ -6,10 +6,15 @@ var MODEL = require('mobile/model');
 var SCROLLER = require('mobile/scroller');
 var TOOL = require('mobile/tool');
 
+//Applications
 var applicationIconTexture = new Texture('assets/icon.png', 1) ;
 var applicationIconSkin = new Skin({ texture: applicationIconTexture, width: 80, height: 80, aspect: 'fit', });
+
+//Tabs
 var tabTexture = (screenScale == 2) ? new Texture('assets/tabs.png', 1) : (screenScale == 1.5) ? new Texture('assets/tabs.png', 1) : new Texture('assets/tabs.png', 1);
 var tabSkin = new CONTROL.Skin(tabTexture, THEME.tabDisabledEffect, THEME.tabEnabledEffect, THEME.tabSelectedEffect);
+
+//Skins
 var blackSkin = new Skin({ fill: '#30A8BE',});
 var whiteSkin = new Skin({ fill: '#30A8BE',});
 
@@ -31,43 +36,43 @@ Handler.bind("/main", Object.create(MODEL.ScreenBehavior.prototype, {
 	},
 	onDescribe: { value: 
 		function(query, selection) {
-					return {
-						Screen: MainScreen,
-						selection: 0,
-						skin: tabSkin,
-						tabs: [
-							{
-								Header: Header,
-								Pane: HomePane,
-								items: null,
-								more: false,
-								scroll: {x: 0, y:0},
-								selection: -1,
-								variant: 2,
-								title: "Photos",
-							},
-							{
-								Header: Header,
-								Pane: HomePane,
-								items: null,
-								more: false,
-								scroll: {x: 0, y:0},
-								selection: -1,
-								variant: 1,
-								title: "Videos",
-							},
-							{
-								Header: Header,
-								Pane: HomePane,
-								items: null,
-								more: false,
-								scroll: {x: 0, y:0},
-								selection: -1,
-								variant: 0,
-								title: "Songs",
-							},
-						]
-					};
+			return {
+				Screen: MainScreen,
+				selection: 0,
+				skin: tabSkin,
+				tabs: [
+					{ 
+					Header: Header,
+					Pane: HomePane,
+					items: null,
+					more: false,
+					scroll: {x: 0, y:0},
+					selection: -1,
+					variant: 2,
+					title: "Photos",
+					},
+					{
+					Header: Header,
+					Pane: HomePane,
+					items: null,
+					more: false,
+					scroll: {x: 0, y:0},
+					selection: -1,
+					variant: 1,
+					title: "Videos",
+					},
+					{
+					Header: Header,
+					Pane: HomePane,
+					items: null,
+					more: false,
+					scroll: {x: 0, y:0},
+					selection: -1,
+					variant: 0,
+					title: "Songs",
+					},
+				]
+			};
 		},
 	},
 }));
