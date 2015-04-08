@@ -49,7 +49,7 @@ Handler.bind("/main", Object.create(MODEL.ScreenBehavior.prototype, {
 					scroll: {x: 0, y:0},
 					selection: -1,
 					variant: 2,
-					title: "Photos",
+					title: "Home",
 					},
 					{
 					Header: Header,
@@ -59,7 +59,7 @@ Handler.bind("/main", Object.create(MODEL.ScreenBehavior.prototype, {
 					scroll: {x: 0, y:0},
 					selection: -1,
 					variant: 1,
-					title: "Videos",
+					title: "myChairs",
 					},
 					{
 					Header: Header,
@@ -69,13 +69,14 @@ Handler.bind("/main", Object.create(MODEL.ScreenBehavior.prototype, {
 					scroll: {x: 0, y:0},
 					selection: -1,
 					variant: 0,
-					title: "Songs",
+					title: "Map View",
 					},
 				]
 			};
 		},
 	},
 }));
+
 var Header = SCREEN.EmptyHeader.template(function($) { return { skin: blackSkin, contents: [
 	TOOL.BackButton($, { }),
 	TOOL.HeaderTitle($, { style: THEME.plainHeaderTitleStyle, }),
@@ -100,5 +101,49 @@ var HomeScreen = SCREEN.EmptyScreen.template(function($) { return { contents: [
 	], }),
 	Header($, { anchor: 'HEADER', }),
 ], }});
+
+//Handlers
+Handler.bind("/photo", Object.create(MODEL.ScreenBehavior.prototype, {
+	onDescribe: { value: 
+//@line 191
+		function(query, selection) {
+			return {
+					Screen: PhotoScreen,
+					scroll: {x: 0, y:0},
+					selection: -1,
+					title: selection.title,
+					url: selection.url
+				};
+		},
+	},
+}));
+
+Handler.bind("/video", Object.create(MODEL.ScreenBehavior.prototype, {
+	onDescribe: { value: 
+		function(query, selection) {
+			return {
+					Screen: VideoScreen,
+					scroll: {x: 0, y:0},
+					selection: -1,
+					title: selection.title,
+					url: selection.url
+				};
+		},
+	},
+}));
+
+Handler.bind("/video", Object.create(MODEL.ScreenBehavior.prototype, {
+	onDescribe: { value: 
+		function(query, selection) {
+			return {
+					Screen: VideoScreen,
+					scroll: {x: 0, y:0},
+					selection: -1,
+					title: selection.title,
+					url: selection.url
+				};
+		},
+	},
+}));
 
 application.behavior = new MODEL.ApplicationBehavior(application);
