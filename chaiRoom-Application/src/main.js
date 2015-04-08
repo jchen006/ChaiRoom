@@ -53,7 +53,7 @@ Handler.bind("/main", Object.create(MODEL.ScreenBehavior.prototype, {
 					},
 					{
 					Header: Header,
-					Pane: HomePane,
+					Pane: myChairsPane,
 					items: null,
 					more: false,
 					scroll: {x: 0, y:0},
@@ -63,7 +63,7 @@ Handler.bind("/main", Object.create(MODEL.ScreenBehavior.prototype, {
 					},
 					{
 					Header: Header,
-					Pane: HomePane,
+					Pane: MapPane,
 					items: null,
 					more: false,
 					scroll: {x: 0, y:0},
@@ -88,12 +88,33 @@ var MainScreen = SCREEN.EmptyScreen.template(function($) { return { contents: [
 	$.tabs[$.selection].Header($.tabs[$.selection], { anchor: 'HEADER', }),
 ], }});
 
-var HomePane = Body.template(function($) { return { contents: [
+var HomePane = Body.template(function($) { 
+	trace("Home Pane");
+	return { contents: [
 	SCROLLER.VerticalScroller($, { contents: [
 		Column($, { left: 0, right: 0, top: 0, anchor: 'LIST' }),
 		SCROLLER.VerticalScrollbar($, { }),
 	], }),
 ], }});
+
+var myChairsPane = Body.template(function($) { 
+	trace("myChairs Pane");
+	return { contents: [
+	SCROLLER.VerticalScroller($, { contents: [
+		Column($, { left: 0, right: 0, top: 0, anchor: 'LIST' }),
+		SCROLLER.VerticalScrollbar($, { }),
+	], }),
+], }});
+
+var MapPane = Body.template(function($) { 
+	trace("Map Pane");
+	return { contents: [
+	SCROLLER.VerticalScroller($, { contents: [
+		Column($, { left: 0, right: 0, top: 0, anchor: 'LIST' }),
+		SCROLLER.VerticalScrollbar($, { }),
+	], }),
+], }});
+
 
 var HomeScreen = SCREEN.EmptyScreen.template(function($) { return { contents: [
 	Body($, { anchor: 'BODY', contents: [
@@ -103,7 +124,7 @@ var HomeScreen = SCREEN.EmptyScreen.template(function($) { return { contents: [
 ], }});
 
 //Handlers
-Handler.bind("/photo", Object.create(MODEL.ScreenBehavior.prototype, {
+Handler.bind("/home", Object.create(MODEL.ScreenBehavior.prototype, {
 	onDescribe: { value: 
 //@line 191
 		function(query, selection) {
@@ -118,7 +139,7 @@ Handler.bind("/photo", Object.create(MODEL.ScreenBehavior.prototype, {
 	},
 }));
 
-Handler.bind("/video", Object.create(MODEL.ScreenBehavior.prototype, {
+Handler.bind("/myChairs", Object.create(MODEL.ScreenBehavior.prototype, {
 	onDescribe: { value: 
 		function(query, selection) {
 			return {
@@ -132,7 +153,7 @@ Handler.bind("/video", Object.create(MODEL.ScreenBehavior.prototype, {
 	},
 }));
 
-Handler.bind("/video", Object.create(MODEL.ScreenBehavior.prototype, {
+Handler.bind("/map_view", Object.create(MODEL.ScreenBehavior.prototype, {
 	onDescribe: { value: 
 		function(query, selection) {
 			return {
