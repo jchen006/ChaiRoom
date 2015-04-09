@@ -29,6 +29,13 @@ Handler.bind("/seats", {
 		application.distribute("onModelChanged");
 	}
 });
+Handler.bind("/data", {
+	onInvoke: function(handler, message) {
+		var data = { name:,totalSeats: model.data.totlSeats,openSeats: model.data.openSeats }
+		message.responseText = JSON.stringify(  );
+		message.status = 200;
+	}
+});
 // layouts
 var MainScreen = Container.template(function($) { return {
 	left:0, right:0, top:0, bottom:0,
