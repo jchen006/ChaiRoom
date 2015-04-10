@@ -24,15 +24,15 @@ Handler.bind("/seats", {
 		var numberOfOccupiedSeats =  totalSeats - (newOpenSeats)
 		var numberOfOpenSeats  =  (newOpenSeats - numberOfReservedSeats)
 		if(numberOfOpenSeats < 0) return 0;
-		model.data.openSeats = numberOfOpenSeats;
-		model.data.occupiedSeats = numberOfOccupiedSeats;
+		model.data.openSeats = numberOfOpenSeats.toFixed(0);
+		model.data.occupiedSeats = numberOfOccupiedSeats.toFixed(0);
 		application.distribute("onModelChanged");
 	}
 });
 Handler.bind("/data", {
 	onInvoke: function(handler, message) {
-		var data = { name:,totalSeats: model.data.totlSeats,openSeats: model.data.openSeats }
-		message.responseText = JSON.stringify(  );
+		var data = { totalSeats: model.data.totalSeats,openSeats: model.data.openSeats };
+		message.responseText = JSON.stringify( data );
 		message.status = 200;
 	}
 });
@@ -62,10 +62,10 @@ var MainScreen = Container.template(function($) { return {
 	],
 	behavior: Object.create(Behavior.prototype, {
 		onModelChanged: { value: function(container) {
-			container.available.string  =  "Open : "  + model.data.openSeats.toFixed(0) ;
-			container.reserved.string  = "Reserved : " + model.data.reservedSeats.toFixed(0) ;
-			container.occupied.string  = "Occupied : " + model.data.occupiedSeats.toFixed(0) ;
-			var total = parseInt(model.data.occupiedSeats.toFixed(0)) + parseInt(model.data.reservedSeats.toFixed(0)) + parseInt(model.data.openSeats.toFixed(0)) ;
+			container.available.string  =  "Open : "  + model.data.openSeats ;
+			container.reserved.string  = "Reserved : " + model.data.reservedSeats ;
+			container.occupied.string  = "Occupied : " + model.data.occupiedSeats ;
+			var total = parseInt(model.data.occupiedSeats) + parseInt(model.data.reservedSeats) + parseInt(model.data.openSeats) ;
 			container.total.string  = "Total Seats: " + String(total);
 			container.cafeName.string  = model.data.cafeName;
 		}},
@@ -91,7 +91,7 @@ ApplicationBehavior.prototype =  Object.create(MODEL.ApplicationBehavior.prototy
 	onLaunch: { value: function(application) {
 		application.shared = true;
 		var data = this.data = {
-			availableSeats: 0,
+			openSeats: 0,
 			reservedSeats: 4,
 			totalSeats: 30,
 			name:"",

@@ -11,6 +11,7 @@ deviceURL = "";
 // ##assets##
 var chairIcon = './assets/chair.png';
 var searchIcon = './assets/search.png';
+var mapImage = './assets/map.png'
 
 // ##Styles##
 
@@ -101,8 +102,8 @@ Items =  [
 	map: "assets/yali.png",
 	myChairs: 0,
 },
-
 ]
+var cafeList = {};
 Handler.bind("/main", 
 	Object.create( MODEL.ScreenBehavior.prototype, {
 		hasSelection: { value: 
@@ -121,6 +122,7 @@ Handler.bind("/main",
 		},
 		onDescribe: { value: 
 			function(query, selection) {
+			application.discover("chairoomSensors");
 				return {
 					Screen: MainScreen,
 					selection: 0,
@@ -149,7 +151,7 @@ Handler.bind("/main",
 					},
 					{
 						Header: Header,
-						Pane: HomePane,
+						Pane: mapPane,
 						items: null,
 						more: false,
 						scroll: {x: 0, y:0},
@@ -168,6 +170,7 @@ Handler.bind("/discover", Behavior({
 	onInvoke: function(handler, message){
 		deviceURL = JSON.parse(message.requestText).url;
 		handler.invoke( new Message( "/data" ) );
+		trace(deviceURL)
 	}
 }));
 
@@ -184,8 +187,16 @@ Handler.bind("/data", Behavior({
 		}
 	},
 	onComplete: function(handler,message,json){
-		
-		application.distribute("onDataChange");
+		if(json == null) return
+		Items[0].totalSeats = json.totalSeats;
+		Items[0].openSeats = json.openSeats;
+		application.distribute("onDataChanged");
+		//trace(application.first.name)
+		//application.distribute("onDataChange");
+		//application.remove(application.first)
+		//handler.invoke( new Message( "/main" ) );
+		//trace(cafeList["northsidecafe"])
+		cafeList["northsidecafe"].openSeatsLabel.string = Items[0].openSeats;
 		handler.invoke( new Message( "/delay?duration=700" ) );
 	}
 }));
@@ -210,7 +221,7 @@ var Body = SCREEN.EmptyBody.template(function($) {
 	return { skin: backgroundSkin}});
 
 var CafeItemLine = Line.template(function($) { 
-	return { left: 0, right: 0, active: true, skin: listSkin, 
+	return {  name: $.name.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '').toLowerCase(),left: 0, right: 0, active: true, skin: listSkin, 
 		behavior: Object.create((CafeItemLine.behaviors[0]).prototype), contents: [
 		Column($, { left: 0, right: 0, contents: [
 			Line($, { left: 10, right: 2, height: 60, 
@@ -219,7 +230,7 @@ var CafeItemLine = Line.template(function($) {
 					blocks: [
 					{ style: listText, string: $.name, },
 					], }),
-				Label($,{right:20,style: listText, string :$.openSeats}),
+				this.openSeatsLabel = Label($,{right:20,style: listText, string :$.openSeats}),
 				Picture($, {  right:20, top:5, url:chairIcon, }),
 				], }),
 			Line($, { left: 0, right: 0, height: 1, skin: separatorSkin, }),
@@ -231,7 +242,7 @@ CafeItemLine.behaviors = new Array(1);
 CafeItemLine.behaviors[0] = SCREEN.ListItemBehavior.template({
 	onTouchEnded: function(line, id, x, y, ticks) {
 		this.onTouchCancelled(line, id, x, y, ticks);
-		trace("touched")
+		trace("touched: " + line.name)
 	}
 })
 
@@ -290,7 +301,8 @@ var HomePane = Body.template(function($) { return { contents: [
 Container($, {left: 0, right: 0, top: 0,bottom:0, contents: [
 	Column($, { left: 0, right: 0, top: 0, anchor: 'LIST', behavior: Object.create((HomePane.behaviors[0]).prototype), }),
 
-	], }),
+	]
+	}),
 	//SCROLLER.VerticalScroller($, { contents: [
 		//Column($, { left: 0, right: 0, top: 20, anchor: 'LIST', behavior: Object.create((HomePane.behaviors[0]).prototype), }),
 		//SCROLLER.VerticalScrollbar($, { }),
@@ -303,9 +315,17 @@ Container($, {left: 0, right: 0, top: 0,bottom:0, contents: [
 HomePane.behaviors = new Array(1);
 HomePane.behaviors[0] = SCREEN.ListBehavior.template({
 	addItemLine: function(list, item) {
-		list.add(new CafeItemLine(item));
+		var i = new CafeItemLine(item)
+		list.add(i);
+		var name = item.name.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '').toLowerCase()
+		cafeList[name] = i;
+		trace(application.width)
+		
 	}
 })
+var mapPane = SCREEN.EmptyBody.template(function($) { return {left:0,right:0,top:0,bottom:0,contents: [
+	Picture($,{left:0,right:0,top:0,bottom:0, url:mapImage,aspect:'fit'})
+]}})
 var Header = SCREEN.EmptyHeader.template(function($) { return { skin: headerSkin, 
 	contents: [
 	TOOL.BackButton($, { }),
@@ -316,11 +336,12 @@ var Header = SCREEN.EmptyHeader.template(function($) { return { skin: headerSkin
 var MainScreen = SCREEN.EmptyScreen.template(function($) { return { 
 	contents: [
 	$.tabs[$.selection].Pane($.tabs[$.selection], { anchor: 'BODY', }),
-	
 	SCREEN.TabFooter($, { anchor: 'FOOTER', }),
 	$.tabs[$.selection].Header($.tabs[$.selection], { anchor: 'HEADER', }),
-	], }});
+	]
+	 }});
 
 
 // model
+
 model = application.behavior = new MODEL.ApplicationBehavior(application);
