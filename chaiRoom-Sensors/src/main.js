@@ -29,6 +29,15 @@ Handler.bind("/seats", {
 		application.distribute("onModelChanged");
 	}
 });
+Handler.bind("/reserve", Object.create(Behavior.prototype, {
+	onInvoke: { value:
+		function(handler, message) {
+			var query = parseQuery( message.query );
+			var numOfReservedSeats = query.numOfReservedSeats;
+			model.data.reservedSeats = parseInt(model.data.reservedSeats) + parseInt(numOfReservedSeats);
+		},
+	}
+}));
 Handler.bind("/data", {
 	onInvoke: function(handler, message) {
 		var data = { totalSeats: model.data.totalSeats,openSeats: model.data.openSeats };
@@ -91,8 +100,8 @@ ApplicationBehavior.prototype =  Object.create(MODEL.ApplicationBehavior.prototy
 	onLaunch: { value: function(application) {
 		application.shared = true;
 		var data = this.data = {
-			openSeats: 0,
-			reservedSeats: 4,
+			openSeats: 30,
+			reservedSeats: 0,
 			totalSeats: 30,
 			name:"",
 		};

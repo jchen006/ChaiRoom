@@ -6,6 +6,7 @@ var MODEL = require('mobile/model');
 var SCROLLER = require('mobile/scroller');
 var TOOL = require('mobile/tool');
 var KEYBOARD = require('mobile/keyboard');
+var DIALOG = require('mobile/dialog');
 
 deviceURL = "";
 // ##assets##
@@ -50,9 +51,9 @@ CafesData =  {
 		"Mon-Fri 7:30 am - 7:00 pm",
 		"Sat-Sun 9:00 am - 5:00 pm"],
 		phone: "(510) 845-3663",
-		totalSeats: 30,
-		openSeats: 3,
-		openSoonSeats: 4,
+		totalSeats: "...",
+		openSeats: "...",
+		openSoonSeats: "...",
 		map: "assets/northside.png",
 		myChairs: 0,
 	},
@@ -65,9 +66,9 @@ CafesData =  {
 		"Fri	 7:30 am - 9:00 pm",
 		"Sat-Sun 9:00 am - 9:00 pm"],
 		phone: "(510) 665-6000",
-		totalSeats: 30,
-		openSeats: 1,
-		openSoonSeats: 0,
+		totalSeats: "...",
+		openSeats: "...",
+		openSoonSeats: "...",
 		map: "assets/bluedoor.png",
 		myChairs: 0,
 	},
@@ -78,9 +79,9 @@ CafesData =  {
 		hours: [
 		"Mon-Sun 6:00 am - 12:00 am"],
 		phone: "(510) 843-5282",
-		totalSeats: 30,
-		openSeats: 9,
-		openSoonSeats: 0,
+		totalSeats: "...",
+		openSeats: "...",
+		openSoonSeats: "...",
 		map: "assets/strada.png",
 		myChairs: 0,
 	},
@@ -93,9 +94,9 @@ CafesData =  {
 		"Fri	 7:00 am - 10:00 pm",
 		"Sat-Sun 8:00 am - 10:00 pm"],
 		phone: "(510) 644-3100",
-		totalSeats: 30,
-		openSeats: 4,
-		openSoonSeats: 0,
+		totalSeats: "...",
+		openSeats: "...",
+		openSoonSeats: "...",
 		map: "assets/milano.png",
 		myChairs: 0,
 	},
@@ -106,9 +107,9 @@ CafesData =  {
 		"Mon-Fri 7:00 am - 7:00 pm",
 		"Sat-Sun 8:00 am - 5:00 pm"],
 		phone: "(510) 843-2233",
-		totalSeats: 30,
-		openSeats: 8,
-		openSoonSeats: 0,
+		totalSeats: "...",
+		openSeats: "...",
+		openSoonSeats: "...",
 		map: "assets/yali.png",
 		myChairs: 0,
 	},
@@ -151,15 +152,17 @@ Handler.bind("/main",
 						more: false,
 						scroll: {x: 0, y:0},
 						selection: -1,
+						variant: 2,
 						title: "ChaiRoom",
 					},
 					{
 						Header: Header,
-						Pane: HomePane,
+						Pane: myChairsPane,
 						items: null,
 						more: false,
 						scroll: {x: 0, y:0},
 						selection: -1,
+						variant: 1,
 						title: "MyChairs",
 					},
 					{
@@ -169,6 +172,7 @@ Handler.bind("/main",
 						more: false,
 						scroll: {x: 0, y:0},
 						selection: -1,
+						variant: 0,
 						title: "MapView",
 					},
 					]
@@ -203,6 +207,42 @@ Handler.bind("/cafe", Object.create(MODEL.ScreenBehavior.prototype, {
 		}
 	}}
 }));
+Handler.bind("/faild", Object.create(MODEL.DialogBehavior.prototype, {
+	onDescribe: { value: 
+		function(query) {
+			return {
+                    Dialog: DIALOG.Box,
+                    title: query.title,
+                    items: [
+                        {
+                            Item: DIALOG.Caption,
+                            string: query.msg
+                        },
+                    ],
+                    ok: "OK",
+                };
+		},
+	},
+}));
+Handler.bind("/success", Object.create(MODEL.DialogBehavior.prototype, {
+	onDescribe: { value: 
+		function(query) {
+			return {
+                    Dialog: DIALOG.Box,
+                    title: query.title,
+                    action:"/back",
+                    items: [
+                        {
+                            Item: DIALOG.Caption,
+                            string: query.msg
+                        },
+                    ],
+                    ok: "OK",
+                };
+		},
+	},
+}));
+
 Handler.bind("/discover", Behavior({
 	onInvoke: function(handler, message){
 		deviceURL = JSON.parse(message.requestText).url;
@@ -225,10 +265,9 @@ Handler.bind("/data", Behavior({
 	},
 	onComplete: function(handler,message,json){
 		if(json == null) return
-			CafesData[0].totalSeats = json.totalSeats;
-		CafesData[0].openSeats = json.openSeats;
-		application.distribute("onDataChanged")
-		cafeList["northsidecafe"].openSeatsLabel.string = CafesData[0].openSeats;
+		CafesData["northsidecafe"].totalSeats = json.totalSeats;
+		CafesData["northsidecafe"].openSeats = json.openSeats;
+		cafeList["northsidecafe"].openSeatsLabel.string = CafesData["northsidecafe"].openSeats;
 		handler.invoke( new Message( "/delay?duration=700" ) );
 	}
 }));
@@ -310,7 +349,7 @@ var HomePane = Body.template(function($) { return { contents: [
 						}),
 					}),
 					Label($, {
-						left:40, right:0, top:0, bottom:0, style:fieldHintStyle, string:"Search by cafe name...", name:"hint"
+						left:40, right:0, top:0, bottom:0, style:fieldHintStyle, string:"Search by cafe name..", name:"hint"
 					})
 					]
 				})
@@ -335,15 +374,6 @@ SCROLLER.VerticalScroller($, { contents: [
 	Column($, { left: 0, right: 0, top: 0, anchor: 'LIST', behavior: Object.create((HomePane.behaviors[0]).prototype), }),
 	SCROLLER.VerticalScrollbar($, { }),
 	], }),
-
-
-	//SCROLLER.VerticalScroller($, { contents: [
-		//Column($, { left: 0, right: 0, top: 20, anchor: 'LIST', behavior: Object.create((HomePane.behaviors[0]).prototype), }),
-		//SCROLLER.VerticalScrollbar($, { }),
-		//SCROLLER.TopScrollerShadow($, { }),
-		//SCROLLER.BottomScrollerShadow($, { }),
-	//], }),
-
 ]}),
 ], }});
 HomePane.behaviors = new Array(1);
@@ -352,9 +382,8 @@ HomePane.behaviors[0] = SCREEN.ListBehavior.template({
 		item.action = "/cafe"
 		var i = new CafeItemLine(item)
 		list.add(i);
-		//var name = item.name.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '').toLowerCase()
-		//cafeList[name] = i;
-		//trace(application.width)
+		var name = item.name.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '').toLowerCase()
+		cafeList[name] = i;
 		
 	}
 })
@@ -362,9 +391,11 @@ HomePane.behaviors[0] = SCREEN.ListBehavior.template({
 var mapPane = SCREEN.EmptyBody.template(function($) { return {left:0,right:0,top:0,bottom:0,contents: [
 	Picture($,{left:0,right:0,top:0,bottom:0, url:mapImage,aspect:'fit'})
 	]}})
+// myChairs tab
+var myChairsPane = SCREEN.EmptyBody.template(function($) { return {skin: backgroundSkin,left:0,right:0,top:0,bottom:0,contents: [
+	Label($, { left:0,right:0,skin: backgroundSkin, string: "Under Construction!",style: buttonText}),
+	]}})
 //
-
-
 var CafeInfo = SCREEN.EmptyScreen.template(function($) { 
 	return { 
 		active:true,
@@ -396,7 +427,6 @@ var CafeInfo = SCREEN.EmptyScreen.template(function($) {
 						Label($, { width: 250,height: 32,skin: backgroundSkin, string: "I'm leaving soon!",style: buttonText}),
 						],
 					}),
-			//Label($,{left:0,right:0, style: cafeInfoTitleStyle,string:$.name}),
 			Picture($,{left:0,right:0,top:0, url: $.map}),
 			Label($,{left:5,right:0, style: cafeInfoTextStyle,string:$.address}),
 			
@@ -441,12 +471,11 @@ var CafeInfo = SCREEN.EmptyScreen.template(function($) {
 					Scroller($, { 
 						left: 4, right: 4, top: 4, bottom: 4, active: true,name:"scroller",
 						behavior: Object.create(CONTROL.FieldScrollerBehavior.prototype), clip: true, contents: [
-						Label($, { width: 60,height: 40,left: 0, top: 0, bottom: 0,  skin: THEME.fieldLabelSkin, style: fieldStyle, 
+						this.field= Label($, { width: 60,height: 40,left: 0, top: 0, bottom: 0,  skin: THEME.fieldLabelSkin, style: fieldStyle, 
 							editable: true,active: true, name:"fieldText",
 							behavior: Object.create( CONTROL.FieldLabelBehavior.prototype, {
 								onEdited: { value: function(label){
 									trace("editing")
-									//var data = this.data;
 									this.data.numOfReservedSeats = label.string;
 									label.container.hint.visible = ( this.data.numOfReservedSeats.length == 0 );	
 								}},
@@ -463,12 +492,14 @@ var CafeInfo = SCREEN.EmptyScreen.template(function($) {
 				Container($, {  height: 36,left:15, width:140, skin: nameInputSkin, active: true, 
 					behavior: Object.create(CONTROL.ButtonBehavior.prototype, {
 						onTap: { value: function(container) {
-							trace(this.data.numOfReservedSeats + " " + this.data.openSeats)
 							if(this.data.numOfReservedSeats.length== 0 || parseInt(this.data.numOfReservedSeats) > parseInt(this.data.openSeats)){
-								trace("Wrong")
+								container.invoke(new Message("/faild?msg= We only have " + this.data.openSeats + " open seats&title=Faild"));
+							}else{
+								container.invoke(new Message("/success?msg=Gotcha! Your " + 
+									this.data.numOfReservedSeats +" seats will be reserved for the next 20 minutes!&title=Success"));
+								application.invoke(new Message(deviceURL + 
+										"reserve?numOfReservedSeats=" + this.data.numOfReservedSeats), Message.JSON);
 							}
-							
-							
 						}},
 					}),
 					contents: [
