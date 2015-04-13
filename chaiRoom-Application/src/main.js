@@ -280,7 +280,7 @@ Handler.bind("/data", Behavior({
 		var notifyAboutCancelledReservations = function(cancelled){
 			for (var i in cancelled){
 				var c = cancelled[i];
-				var msg = "?title=Reservation Status&msg=Your " + c.numberOfSeats + " seats reservation at " + c.cafeName + " got expired!" 
+				var msg = "?title=Reservation Status: Late&msg=Your " + c.numberOfSeats + " seats reservation at " + c.cafeName + " got cancelled!" 
 				handler.invoke(new Message("/faild" + msg))
 			}
 		}
@@ -513,6 +513,9 @@ var CafeInfo = SCREEN.EmptyScreen.template(function($) {
 						onTap: { value: function(container) {
 							if(this.data.numOfReservedSeats.length== 0){
 								var msg = "?msg= Number of reserved seats field is blank&title=Faild"
+								container.invoke(new Message("/faild" + msg));
+							}else if(isNaN(this.data.numOfReservedSeats)){
+								var msg = "?msg=" + this.data.numOfReservedSeats + " is NOT a number&title=Faild"
 								container.invoke(new Message("/faild" + msg));
 							}else if(isNaN(this.data.openSeats)){
 								var msg = "?msg= Service can't reach the cafe at the moment...Try later&title=Faild"

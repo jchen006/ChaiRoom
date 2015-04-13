@@ -1,6 +1,6 @@
 // KPR Script file
 var MODEL = require("mobile/model");
-var MINUTES_BEFORE_EXPIRED = 0;
+var MINUTES_BEFORE_EXPIRED = 1; // CHANGE ME TO 0 FOR TESTING -- I SOULD BE 20
 // assets
 var openSeatIcon = '../assets/open.png';
 var reservedSeatIcon = '../assets/reserved.png';
@@ -62,7 +62,7 @@ var checkExpiredReservations = function(r){
 					var reservationTime = reservation.time;
 					var diff = parseInt(now.getTime()) - parseInt(reservationTime.getTime());
 					var minutes = Math.round(parseInt(diff)/60000);
-					if(minutes > MINUTES_BEFORE_EXPIRED){
+					if(minutes >= MINUTES_BEFORE_EXPIRED){
 						trace("reservation cancelled")
 						cancelled.push(reservation)
 						cancelReservation(reservation)
