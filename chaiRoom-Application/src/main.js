@@ -208,7 +208,7 @@ Handler.bind("/cafe", Object.create(MODEL.ScreenBehavior.prototype, {
 		}
 	}}
 }));
-Handler.bind("/faild", Object.create(MODEL.DialogBehavior.prototype, {
+Handler.bind("/failed", Object.create(MODEL.DialogBehavior.prototype, {
 	onDescribe: { value: 
 		function(query) {
 			return {
@@ -281,7 +281,7 @@ Handler.bind("/data", Behavior({
 			for (var i in cancelled){
 				var c = cancelled[i];
 				var msg = "?title=Reservation Status&msg=Your " + c.numberOfSeats + " seats reservation at " + c.cafeName + " got expired!  I hope you made it. Otherwise, you can make another reservation" 
-				handler.invoke(new Message("/faild" + msg))
+				handler.invoke(new Message("/failed" + msg))
 			}
 		}
 		notifyAboutCancelledReservations(userReservations["cancelled"]);
@@ -512,17 +512,17 @@ var CafeInfo = SCREEN.EmptyScreen.template(function($) {
 					behavior: Object.create(CONTROL.ButtonBehavior.prototype, {
 						onTap: { value: function(container) {
 							if(this.data.numOfReservedSeats.length== 0){
-								var msg = "?msg= Number of reserved seats field is blank&title=Faild"
-								container.invoke(new Message("/faild" + msg));
+								var msg = "?msg= Number of reserved seats field is blank&title=failed"
+								container.invoke(new Message("/failed" + msg));
 							}else if(isNaN(this.data.numOfReservedSeats)){
-								var msg = "?msg=" + this.data.numOfReservedSeats + " is NOT a number&title=Faild"
-								container.invoke(new Message("/faild" + msg));
+								var msg = "?msg=" + this.data.numOfReservedSeats + " is NOT a number&title=failed"
+								container.invoke(new Message("/failed" + msg));
 							}else if(isNaN(this.data.openSeats)){
-								var msg = "?msg= Service can't reach the cafe at the moment...Try later&title=Faild"
-								container.invoke(new Message("/faild" + msg));
+								var msg = "?msg= Service can't reach the cafe at the moment...Try later&title=failed"
+								container.invoke(new Message("/failed" + msg));
 							}else if( parseInt(this.data.numOfReservedSeats) > parseInt(this.data.openSeats)){
-								var msg = "?msg= We only have " + this.data.openSeats + " open seats&title=Faild"
-								container.invoke(new Message("/faild" + msg));
+								var msg = "?msg= We only have " + this.data.openSeats + " open seats&title=failed"
+								container.invoke(new Message("/failed" + msg));
 							}else{
 								var msg = "?msg=Gotcha! Your " + this.data.numOfReservedSeats + " seats will be reserved for the next 20 minutes!&title=Success"
 								container.invoke(new Message("/success" + msg));
