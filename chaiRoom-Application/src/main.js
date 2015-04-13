@@ -9,6 +9,7 @@ var KEYBOARD = require('mobile/keyboard');
 var DIALOG = require('mobile/dialog');
 
 deviceURL = "";
+user_id = "";
 // ##assets##
 var chairIcon = './assets/chair.png';
 var searchIcon = './assets/search.png';
@@ -246,6 +247,12 @@ Handler.bind("/success", Object.create(MODEL.DialogBehavior.prototype, {
 Handler.bind("/discover", Behavior({
 	onInvoke: function(handler, message){
 		deviceURL = JSON.parse(message.requestText).url;
+		var guid= function s4() {
+				    return Math.floor((1 + Math.random()) * 0x10000)
+				      .toString(16)
+				      .substring(1);
+				  }
+		user_id = guid(); 
 		handler.invoke( new Message( "/data" ) );
 		trace(deviceURL)
 	}
@@ -257,16 +264,27 @@ Handler.bind("/forget", Behavior({
 	}
 }));
 
+
 Handler.bind("/data", Behavior({
 	onInvoke: function(handler, message){
 		if (deviceURL != "") {
-			handler.invoke(new Message(deviceURL + "data"), Message.JSON);
+			handler.invoke(new Message(deviceURL + "data?user_id=" + user_id), Message.JSON);
 		}
 	},
 	onComplete: function(handler,message,json){
 		if(json == null) return
 		CafesData["northsidecafe"].totalSeats = json.totalSeats;
 		CafesData["northsidecafe"].openSeats = json.openSeats;
+		var userReservations = json.reservations;
+		CafesData["northsidecafe"].reservations = userReservations["valid"];
+		var notifyAboutCancelledReservations = function(cancelled){
+			for (var i in cancelled){
+				var c = cancelled[i];
+				var msg = "?title=Reservation Status&msg=Your " + c.numberOfSeats + " seats reservation at " + c.cafeName + " got expired!" 
+				handler.invoke(new Message("/faild" + msg))
+			}
+		}
+		notifyAboutCancelledReservations(userReservations["cancelled"]);
 		cafeList["northsidecafe"].openSeatsLabel.string = CafesData["northsidecafe"].openSeats;
 		handler.invoke( new Message( "/delay?duration=700" ) );
 	}
@@ -290,9 +308,11 @@ Handler.bind("/delay", Object.create(Behavior.prototype, {
 // layouts
 var Body = SCREEN.EmptyBody.template(function($) { 
 	return { skin: backgroundSkin}});
-
+var id = function(name){
+	return name.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '').toLowerCase();
+}
 var CafeItemLine = Line.template(function($) { 
-	return {  name: $.name.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '').toLowerCase(),left: 0, right: 0, active: true, skin: listSkin, 
+	return {  name: id($.name),left: 0, right: 0, active: true, skin: listSkin, 
 	behavior: Object.create((SCREEN.ListItemBehavior).prototype), contents: [
 	Column($, { left: 0, right: 0, contents: [
 		Line($, { left: 10, right: 2, height: 60, 
@@ -382,7 +402,7 @@ HomePane.behaviors[0] = SCREEN.ListBehavior.template({
 		item.action = "/cafe"
 		var i = new CafeItemLine(item)
 		list.add(i);
-		var name = item.name.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '').toLowerCase()
+		var name = id(item.name)
 		cafeList[name] = i;
 		
 	}
@@ -475,7 +495,6 @@ var CafeInfo = SCREEN.EmptyScreen.template(function($) {
 							editable: true,active: true, name:"fieldText",
 							behavior: Object.create( CONTROL.FieldLabelBehavior.prototype, {
 								onEdited: { value: function(label){
-									trace("editing")
 									this.data.numOfReservedSeats = label.string;
 									label.container.hint.visible = ( this.data.numOfReservedSeats.length == 0 );	
 								}},
@@ -493,16 +512,19 @@ var CafeInfo = SCREEN.EmptyScreen.template(function($) {
 					behavior: Object.create(CONTROL.ButtonBehavior.prototype, {
 						onTap: { value: function(container) {
 							if(this.data.numOfReservedSeats.length== 0){
-								container.invoke(new Message("/faild?msg= Number of reserved seats field is blank&title=Faild"));
+								var msg = "?msg= Number of reserved seats field is blank&title=Faild"
+								container.invoke(new Message("/faild" + msg));
 							}else if(isNaN(this.data.openSeats)){
-								container.invoke(new Message("/faild?msg= Service can't reach the cafe at the moment...Try later&title=Faild"));
+								var msg = "?msg= Service can't reach the cafe at the moment...Try later&title=Faild"
+								container.invoke(new Message("/faild" + msg));
 							}else if( parseInt(this.data.numOfReservedSeats) > parseInt(this.data.openSeats)){
-								container.invoke(new Message("/faild?msg= We only have " + this.data.openSeats + " open seats&title=Faild"));
+								var msg = "?msg= We only have " + this.data.openSeats + " open seats&title=Faild"
+								container.invoke(new Message("/faild" + msg));
 							}else{
-								container.invoke(new Message("/success?msg=Gotcha! Your " + 
-									this.data.numOfReservedSeats +" seats will be reserved for the next 20 minutes!&title=Success"));
-								application.invoke(new Message(deviceURL + 
-										"reserve?numOfReservedSeats=" + this.data.numOfReservedSeats), Message.JSON);
+								var msg = "?msg=Gotcha! Your " + this.data.numOfReservedSeats + " seats will be reserved for the next 20 minutes!&title=Success"
+								container.invoke(new Message("/success" + msg));
+								var params = "?user_id=" +user_id + "&numOfReservedSeats=" + this.data.numOfReservedSeats + "&cafeId="+ id(this.data.name) + "&cafeName=" + this.data.name.replace(/[_\s]/g, '%20');
+								application.invoke(new Message(deviceURL +"reserve" + params), Message.JSON);
 							}
 						}},
 					}),

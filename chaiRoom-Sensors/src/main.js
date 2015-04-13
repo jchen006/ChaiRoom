@@ -1,5 +1,6 @@
 // KPR Script file
 var MODEL = require("mobile/model");
+var MINUTES_BEFORE_EXPIRED = 0;
 // assets
 var openSeatIcon = '../assets/open.png';
 var reservedSeatIcon = '../assets/reserved.png';
@@ -29,18 +30,64 @@ Handler.bind("/seats", {
 		application.distribute("onModelChanged");
 	}
 });
+// params
+// user_id, cafeId, numOfReservedSeats
 Handler.bind("/reserve", Object.create(Behavior.prototype, {
 	onInvoke: { value:
 		function(handler, message) {
 			var query = parseQuery( message.query );
 			var numOfReservedSeats = query.numOfReservedSeats;
 			model.data.reservedSeats = parseInt(model.data.reservedSeats) + parseInt(numOfReservedSeats);
+			var user_id = query.user_id;
+			var id = query.cafeId;
+			var name = query.cafeName;
+			var new_reservation = {cafeId: id,cafeName:name, time:new Date(),numberOfSeats: numOfReservedSeats, active: true};
+			var reservationModel = model.data.reservationModel;
+			if(!(user_id in reservationModel)){
+				reservationModel[user_id] = [];
+			}
+			reservationModel[user_id].push(new_reservation);
+			model.data.reservationModel[user_id] = reservationModel[user_id];
+			trace(query.cafeName)
 		},
 	}
 }));
+var checkExpiredReservations = function(r){
+			var now = new Date();
+			var cancelled = []
+			var valid = []
+			for(var i in r){
+				var reservation= r[i]
+				if(reservation.active){
+					var reservationTime = reservation.time;
+					var diff = parseInt(now.getTime()) - parseInt(reservationTime.getTime());
+					var minutes = Math.round(parseInt(diff)/60000);
+					if(minutes > MINUTES_BEFORE_EXPIRED){
+						trace("reservation cancelled")
+						cancelled.push(reservation)
+						cancelReservation(reservation)
+					}else{
+						valid.push(reservation)
+					}
+				}
+			}
+			return {"cancelled":cancelled, "valid":valid };
+	}
+var cancelReservation = function(reservation){
+	reservation.active = false;
+	model.data.reservedSeats = parseInt(model.data.reservedSeats) - parseInt(reservation.numberOfSeats) ;
+}
+// params
+// user_id
 Handler.bind("/data", {
 	onInvoke: function(handler, message) {
-		var data = { totalSeats: model.data.totalSeats,openSeats: model.data.openSeats };
+		var query = parseQuery( message.query );
+		var user_id = query.user_id
+		var userReservations = {"cancelled":[], "valid":[] };
+		if(model.data.reservationModel.hasOwnProperty(user_id)){
+			userReservations =  checkExpiredReservations(model.data.reservationModel[user_id])
+		}
+		var data = {reservations: userReservations, totalSeats: model.data.totalSeats,openSeats: model.data.openSeats };
 		message.responseText = JSON.stringify( data );
 		message.status = 200;
 	}
@@ -102,6 +149,7 @@ ApplicationBehavior.prototype =  Object.create(MODEL.ApplicationBehavior.prototy
 		var data = this.data = {
 			openSeats: 30,
 			reservedSeats: 0,
+			reservationModel:{},
 			totalSeats: 30,
 			name:"",
 		};
