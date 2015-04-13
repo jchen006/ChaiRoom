@@ -492,7 +492,11 @@ var CafeInfo = SCREEN.EmptyScreen.template(function($) {
 				Container($, {  height: 36,left:15, width:140, skin: nameInputSkin, active: true, 
 					behavior: Object.create(CONTROL.ButtonBehavior.prototype, {
 						onTap: { value: function(container) {
-							if(this.data.numOfReservedSeats.length== 0 || parseInt(this.data.numOfReservedSeats) > parseInt(this.data.openSeats)){
+							if(this.data.numOfReservedSeats.length== 0){
+								container.invoke(new Message("/faild?msg= Number of reserved seats field is blank&title=Faild"));
+							}else if(isNaN(this.data.openSeats)){
+								container.invoke(new Message("/faild?msg= Service can't reach the cafe at the moment...Try later&title=Faild"));
+							}else if( parseInt(this.data.numOfReservedSeats) > parseInt(this.data.openSeats)){
 								container.invoke(new Message("/faild?msg= We only have " + this.data.openSeats + " open seats&title=Faild"));
 							}else{
 								container.invoke(new Message("/success?msg=Gotcha! Your " + 
