@@ -280,7 +280,7 @@ Handler.bind("/data", Behavior({
 		var notifyAboutCancelledReservations = function(cancelled){
 			for (var i in cancelled){
 				var c = cancelled[i];
-				var msg = "?title=Reservation Status&msg=Your " + c.numberOfSeats + " seats reservation at " + c.cafeName + " got expired!  I hope you made it. Otherwise, you can make another reservation" 
+				var msg = "?title=Reservation Status&msg=Your " + c.numberOfSeats + " seats reservation at " + c.cafeName + " got expired! If you haven't arrived, you can make another reservation." 
 				handler.invoke(new Message("/failed" + msg))
 			}
 		}
@@ -437,20 +437,20 @@ var CafeInfo = SCREEN.EmptyScreen.template(function($) {
 							}},
 						}),
 					contents:[
-					Container($, { width: 250, height: 40, skin: new Skin({fill:"#f5f3f3"}),active: true, 
+					Container($, { width: 200, height: 36, skin: new Skin({fill:"#f5f3f3"}),active: true, 
 						behavior: Object.create(CONTROL.ButtonBehavior.prototype, {
 							onTap: { value: function(container) {
 								trace("clicked")
 							}},
 						}), 
 						contents: [
-						Label($, { width: 250,height: 32,skin: backgroundSkin, string: "I'm leaving soon!",style: buttonText}),
+						Label($, { width: 200,height: 36,skin: backgroundSkin, string: "I'm leaving soon!",style: buttonText}),
 						],
 					}),
-			Picture($,{left:0,right:0,top:0, url: $.map}),
+			Picture($,{left:0,right:0,top:3, url: $.map}),
 			Label($,{left:5,right:0, style: cafeInfoTextStyle,string:$.address}),
 			
-			Line($,{left:0,right:0,top:5, 
+			Line($,{left:0,right:0,top:3, 
 				contents:[
 				Picture($,{height:50,width:50,left:5, url: './assets/phone-blue.png'}),
 				Label($,{left:10, style: cafeInfoTextStyle,string:$.phone}),
@@ -515,13 +515,13 @@ var CafeInfo = SCREEN.EmptyScreen.template(function($) {
 								var msg = "?msg= Number of reserved seats field is blank&title=failed"
 								container.invoke(new Message("/failed" + msg));
 							}else if(isNaN(this.data.numOfReservedSeats)){
-								var msg = "?msg=" + this.data.numOfReservedSeats + " is NOT a number&title=failed"
+								var msg = "?msg=" + this.data.numOfReservedSeats + " is NOT a number&title=Failed"
 								container.invoke(new Message("/failed" + msg));
 							}else if(isNaN(this.data.openSeats)){
-								var msg = "?msg= Service can't reach the cafe at the moment...Try later&title=failed"
+								var msg = "?msg= Service can't reach the cafe at the moment...Try later&title=Failed"
 								container.invoke(new Message("/failed" + msg));
 							}else if( parseInt(this.data.numOfReservedSeats) > parseInt(this.data.openSeats)){
-								var msg = "?msg= We only have " + this.data.openSeats + " open seats&title=failed"
+								var msg = "?msg= We only have " + this.data.openSeats + " open seats&title=Failed"
 								container.invoke(new Message("/failed" + msg));
 							}else{
 								var msg = "?msg=Gotcha! Your " + this.data.numOfReservedSeats + " seats will be reserved for the next 20 minutes!&title=Success"
