@@ -280,7 +280,7 @@ Handler.bind("/data", Behavior({
 		var notifyAboutCancelledReservations = function(cancelled){
 			for (var i in cancelled){
 				var c = cancelled[i];
-				var msg = "?title=Reservation Status: Late&msg=Your " + c.numberOfSeats + " seats reservation at " + c.cafeName + " got cancelled!" 
+				var msg = "?title=Reservation Status&msg=Your " + c.numberOfSeats + " seats reservation at " + c.cafeName + " got expired!  I hope you made it. Otherwise, you can make another reservation" 
 				handler.invoke(new Message("/faild" + msg))
 			}
 		}
