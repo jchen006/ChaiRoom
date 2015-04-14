@@ -10,21 +10,23 @@ var DIALOG = require('mobile/dialog');
 
 deviceURL = "";
 user_id = "";
-// ##assets##
+
+//All Icon Images
 var chairIcon = './assets/chair.png';
 var searchIcon = './assets/search.png';
-var mapImage = './assets/map.png'
+var mapIcon = './assets/map.png'
 
-// ##Styles##
-
+//Search Button Styles
 var searchButtonTexture =  new Texture(searchIcon, 1);
 var searchButtonSkin = new Skin({ texture: searchButtonTexture, width: 38, height: 40, states: 1, });
 
+//Application Related 
 var applicationIconTexture = new Texture('assets/icon.png', 1) ;
 var applicationIconSkin = new Skin({ texture: applicationIconTexture, width: 80, height: 80, aspect: 'fit', });
 var tabTexture = new Texture('assets/tabs.png', 1) ;
 var tabSkin = new CONTROL.Skin(tabTexture, THEME.tabDisabledEffect, THEME.tabEnabledEffect, THEME.tabSelectedEffect);
 
+//All skins
 var headerSkin = new Skin({ fill: '#7C7C7C',});
 var separatorSkin = new Skin({ fill: 'silver',});
 var cafeInfoSkin = new Skin({ fill: '#30A8BE',});
@@ -43,7 +45,7 @@ var nameInputSkin = new Skin({ fill:"white",borders: {color: 'black', left:2, ri
 var fieldStyle = new Style({ color: 'black', font: '20px', horizontal: 'left' });
 var fieldHintStyle = new Style({ color: 'gray', font: '18px', horizontal: 'left', vertical: 'middle', left: 5, right: 5, top: 5, bottom: 5, });
 
-// ##Handlers##
+//Cafe Data 
 CafesData =  {
 	"northsidecafe":{
 		name: "Northside Cafe", 
@@ -58,7 +60,6 @@ CafesData =  {
 		map: "assets/northside.png",
 		myChairs: 0,
 	},
-
 	"cafebluedoor":{
 		name: "Cafe Blue Door", 
 		address : "2244 Bancroft WayBerkeley, CA 94704",
@@ -73,7 +74,6 @@ CafesData =  {
 		map: "assets/bluedoor.png",
 		myChairs: 0,
 	},
-
 	"cafestrada":{
 		name: "Cafe Strada", 
 		address : "2300 College Ave Berkeley, CA 94704",
@@ -86,7 +86,6 @@ CafesData =  {
 		map: "assets/strada.png",
 		myChairs: 0,
 	},
-
 	"cafemilano":{
 		name: "Cafe Milano", 
 		address : "2522 Bancroft Way Berkeley, CA 94704",
@@ -115,12 +114,17 @@ CafesData =  {
 		myChairs: 0,
 	},
 }
+
 var values = function(dic){ 
 	return Object.keys(dic).map(function(key){
 		return dic[key];
 	})
 };
+
+//All Handlers
 var cafeList = {};// stores cafe list variables for easy access 
+
+/* Cafe Main page*/
 Handler.bind("/main", 
 	Object.create( MODEL.ScreenBehavior.prototype, {
 		hasSelection: { value: 
@@ -184,6 +188,7 @@ Handler.bind("/main",
 	)
 );
 
+/* Cafe Information Page*/
 Handler.bind("/cafe", Object.create(MODEL.ScreenBehavior.prototype, {
 	hasSelection: { value: function(data, delta) {
 		var selection = data.selection + delta;
@@ -208,6 +213,8 @@ Handler.bind("/cafe", Object.create(MODEL.ScreenBehavior.prototype, {
 		}
 	}}
 }));
+
+
 Handler.bind("/failed", Object.create(MODEL.DialogBehavior.prototype, {
 	onDescribe: { value: 
 		function(query) {
@@ -396,6 +403,7 @@ SCROLLER.VerticalScroller($, { contents: [
 	], }),
 ]}),
 ], }});
+
 HomePane.behaviors = new Array(1);
 HomePane.behaviors[0] = SCREEN.ListBehavior.template({
 	addItemLine: function(list, item) {
@@ -409,13 +417,14 @@ HomePane.behaviors[0] = SCREEN.ListBehavior.template({
 })
 // map tab
 var mapPane = SCREEN.EmptyBody.template(function($) { return {left:0,right:0,top:0,bottom:0,contents: [
-	Picture($,{left:0,right:0,top:0,bottom:0, url:mapImage,aspect:'fit'})
+	Picture($,{left:0,right:0,top:0,bottom:0, url:mapIcon,aspect:'fit'})
 	]}})
 // myChairs tab
 var myChairsPane = SCREEN.EmptyBody.template(function($) { return {skin: backgroundSkin,left:0,right:0,top:0,bottom:0,contents: [
 	Label($, { left:0,right:0,skin: backgroundSkin, string: "Under Construction!",style: buttonText}),
 	]}})
-//
+	
+/* Cafe Info Template*/
 var CafeInfo = SCREEN.EmptyScreen.template(function($) { 
 	return { 
 		active:true,
@@ -547,14 +556,14 @@ Header($, { anchor: 'HEADER', }),
 ]
 }});	
 
-// Header
+/* Header Template*/
 var Header = SCREEN.EmptyHeader.template(function($) { return { skin: headerSkin, 
 	contents: [
 	TOOL.BackButton($, { }),
 	TOOL.HeaderTitle($, { style: THEME.plainHeaderTitleStyle, }),
 	], }});
 
-//main screen
+/* Main Screen Template*/
 var MainScreen = SCREEN.EmptyScreen.template(function($) { return { 
 	contents: [
 	$.tabs[$.selection].Pane($.tabs[$.selection], { anchor: 'BODY', }),
@@ -564,6 +573,5 @@ var MainScreen = SCREEN.EmptyScreen.template(function($) { return {
 }});
 
 
-// model
-
+/* Application Model*/
 model = application.behavior = new MODEL.ApplicationBehavior(application);
