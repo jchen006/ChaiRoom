@@ -51,5 +51,5 @@ exports.close = function() {
 
 exports.read = function() {
 	var axes = this.pinsSimulator.delegate("getValue");
-	return {chairs:axes.chairs, cafeName:"North Side Cafe"};			
+	return {chairs:axes.chairs, cafeName:"Northside Cafe"};			
 };
