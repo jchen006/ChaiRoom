@@ -1,6 +1,6 @@
 // KPR Script file
 var MODEL = require("mobile/model");
-var MINUTES_BEFORE_EXPIRED = 1; // CHANGE ME TO 0 FOR TESTING -- I SOULD BE 20
+var MINUTES_BEFORE_EXPIRED = 1; // CHANGE ME TO 1 FOR TESTING -- IT SOULD BE 20
 // assets
 var openSeatIcon = '../assets/open.png';
 var reservedSeatIcon = '../assets/reserved.png';
