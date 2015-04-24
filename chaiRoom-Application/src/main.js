@@ -12,38 +12,42 @@ deviceURL = "";
 user_id = "";
 
 //All Icon Images
-var chairIcon = './assets/chair.png';
+var chairIcon = './assets/chair-blue.png';
 var searchIcon = './assets/search.png';
 var mapIcon = './assets/map.png'
+var logo_h = 'assets/logo-h.png';
+var logo_v = 'assets/logo-v.png';
 
 //Search Button Styles
 var searchButtonTexture =  new Texture(searchIcon, 1);
 var searchButtonSkin = new Skin({ texture: searchButtonTexture, width: 38, height: 40, states: 1, });
 
 //Application Related 
-var applicationIconTexture = new Texture('assets/icon.png', 1) ;
+var applicationIconTexture = new Texture(logo_v, 1) ;
 var applicationIconSkin = new Skin({ texture: applicationIconTexture, width: 80, height: 80, aspect: 'fit', });
 var tabTexture = new Texture('assets/tabs.png', 1) ;
 var tabSkin = new CONTROL.Skin(tabTexture, THEME.tabDisabledEffect, THEME.tabEnabledEffect, THEME.tabSelectedEffect);
 
 //All skins
-var headerSkin = new Skin({ fill: '#7C7C7C',});
-var separatorSkin = new Skin({ fill: 'silver',});
+var headerSkin = new Skin({ fill: '#aeacac',});
+var separatorSkin = new Skin({ fill: '#30A8BE',});
 var cafeInfoSkin = new Skin({ fill: '#30A8BE',});
+var footerSkin = new Skin({ fill: ['#30A8BE','white'],});
+var footerStyle = new Style({font: "14px Helvetica bold", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
 
 var itemNameStyle = new Style({ color:'white', font: 'bold', horizontal: 'null', vertical: 'null', lines: 1, });
-var buttonText = new Style({font: "20px Helvetica Neue bold", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
-var listText = new Style({font: "20px Helvetica Neue Light", color:"#ffffff",});
+var buttonText = new Style({font: "21px Helvetica bold", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
+var listText = new Style({font: "22px Helvetica Neue bold", color:"#30A8BE",});
 var cafeInfoTitleStyle = new Style({font: "25px Oswald DemiBold", color:"black", horizontal: 'center', vertical: 'middle',});
 var cafeInfoTextStyle = new Style({font: "18px Helvetica Neue Light", color:"black", horizontal: 'center', vertical: 'middle',});
 var cafeInfoLabelStyle = new Style({font: "20px Helvetica Neue bold", color:"#30A8BE", vertical: 'middle',});
 
 var filterButtonStyle = new Style({  font: 'bold',color:'white' , horizontal: 'center', vertical: 'middle',});
-var backgroundSkin = new Skin({ fill: '#30A8BE',});
-var listSkin = new Skin({ fill: ['#30A8BE', '#acd473'], });
-var nameInputSkin = new Skin({ fill:"white",borders: {color: 'black', left:2, right:2, top:2, bottom:2 }, stroke: '#30A8BE',});
+var backgroundSkin = new Skin({ fill: 'white',});
+var listSkin = new Skin({ fill: ['white', '#acd473'], });
+var inputTextFieldSkin = new Skin({ fill:"#edecec",borders: {color: 'black', left:0, right:0, top:0, bottom:0 }, stroke: '#30A8BE',});
 var fieldStyle = new Style({ color: 'black', font: '20px', horizontal: 'left' });
-var fieldHintStyle = new Style({ color: 'gray', font: '18px', horizontal: 'left', vertical: 'middle', left: 5, right: 5, top: 5, bottom: 5, });
+var fieldHintStyle = new Style({ color: 'black', font: '18px', horizontal: 'left', vertical: 'middle', left: 5, right: 5, top: 5, bottom: 5, });
 
 //Cafe Data 
 CafesData =  {
@@ -178,7 +182,7 @@ Handler.bind("/main",
 						scroll: {x: 0, y:0},
 						selection: -1,
 						variant: 0,
-						title: "MapView",
+						title: "Map View",
 					},
 					]
 				};
@@ -322,16 +326,16 @@ var CafeItemLine = Line.template(function($) {
 	return {  name: id($.name),left: 0, right: 0, active: true, skin: listSkin, 
 	behavior: Object.create((SCREEN.ListItemBehavior).prototype), contents: [
 	Column($, { left: 0, right: 0, contents: [
-		Line($, { left: 10, right: 2, height: 60, 
+		Line($, { left: 10, right: 2, height: 62,
 			contents: [
 			Text($, { left: 0, right: 0, 
 				blocks: [
 				{ style: listText, string: $.name, },
 				], }),
 			this.openSeatsLabel = Label($,{right:20,style: listText, string :$.openSeats}),
-			Picture($, {  right:20, top:5, url:chairIcon, }),
+			Picture($, { width:35,height:40, right:20, top:5, url:chairIcon, }),
 			], }),
-		Line($, { left: 0, right: 0, height: 1, skin: separatorSkin, }),
+		Line($, { left: 10, right: 10, height: 1.5, skin: separatorSkin, }),
 		], }),
 	],
 }
@@ -349,21 +353,21 @@ var HomePane = Body.template(function($) { return { contents: [
 		contents:[
 		Line($, {left: 0, right: 0, top: 0,skin: headerSkin,height: 50,
 			contents:[
-			Container($, {  height: 40,left:10, skin: nameInputSkin, height: 36,active: true, behavior: 
+			Container($, {  height: 40,left:10, skin: inputTextFieldSkin, height: 36,active: true, behavior:
 				Object.create(CONTROL.ButtonBehavior.prototype, {
 					onTap: { value: function(container) {
 						trace("clicked")
 					}},
 				})
 				, contents: [
-				Label($, { width: 60,height: 34,skin: backgroundSkin, string: "Filter",style: buttonText}),
+				Label($, { width: 65,height: 36,skin: new Skin({ fill: '#30A8BE',}), string: "Filter",style: buttonText}),
 				], }),
 			Container ($, { 
-				name:"nameField",width: 220, height: 40,left:10, skin: nameInputSkin, contents: [
+				name:"nameField",width: 220, height: 40,left:10, skin: inputTextFieldSkin, contents: [
 				Scroller($, { 
 					left: 4, right: 4, top:0, bottom: 4, active: true,name:"scroller",
 					behavior: Object.create(CONTROL.FieldScrollerBehavior.prototype), clip: true, contents: [
-					Label($, { width: 60,height: 40,left: 40, top: 0, bottom: 0, skin: THEME.fieldLabelSkin, style: fieldStyle, 
+					Label($, { width: 65,height: 40,left: 40, top: 0, bottom: 0, skin: THEME.fieldLabelSkin, style: fieldStyle,  
 						editable: true, name:"fieldText",
 						behavior: Object.create( CONTROL.FieldLabelBehavior.prototype, {
 							onEdited: { value: function(label){
@@ -375,7 +379,7 @@ var HomePane = Body.template(function($) { return { contents: [
 						}),
 					}),
 					Label($, {
-						left:40, right:0, top:0, bottom:0, style:fieldHintStyle, string:"Search by cafe name..", name:"hint"
+						left:40, right:0, top:0, bottom:0, style: fieldHintStyle, string:"Search by cafe name..", name:"hint"
 					})
 					]
 				})
@@ -452,7 +456,7 @@ var CafeInfo = SCREEN.EmptyScreen.template(function($) {
 							}},
 						}), 
 						contents: [
-						Label($, { width: 200,height: 36,skin: backgroundSkin, string: "I'm leaving soon!",style: buttonText}),
+						Label($, { width: 200,height: 36,skin: cafeInfoSkin, string: "I'm leaving soon!",style: buttonText}),
 						],
 					}),
 			Picture($,{left:0,right:0,top:3, url: $.map}),
@@ -494,7 +498,7 @@ var CafeInfo = SCREEN.EmptyScreen.template(function($) {
 			Line($,{left:0,right:0, top:0,bottom:0,top:5, 
 				contents:[
 				Container ($, { 
-					name:"nameField",width: 150, height: 40,left:5, skin: nameInputSkin, 
+					name:"nameField",width: 150, height: 40,left:5, skin: inputTextFieldSkin, 
 					contents: [
 					Scroller($, { 
 						left: 4, right: 4, top: 4, bottom: 4, active: true,name:"scroller",
@@ -516,7 +520,7 @@ var CafeInfo = SCREEN.EmptyScreen.template(function($) {
 					})
 					]
 				}),
-				Container($, {  height: 36,left:15, width:140, skin: nameInputSkin, active: true, 
+				Container($, {  height: 36,left:15, width:140, skin: inputTextFieldSkin, active: true, 
 					behavior: Object.create(CONTROL.ButtonBehavior.prototype, {
 						onTap: { value: function(container) {
 							if(this.data.numOfReservedSeats.length== 0){
@@ -540,7 +544,7 @@ var CafeInfo = SCREEN.EmptyScreen.template(function($) {
 						}},
 					}),
 					contents: [
-					Label($, { width: 140,height: 36,skin: backgroundSkin, string: "Reserve",style: buttonText}),
+					Label($, { width: 140,height: 36,skin: cafeInfoSkin, string: "Reserve",style: buttonText}),
 					],
 				})
 				]
@@ -566,7 +570,7 @@ var Header = SCREEN.EmptyHeader.template(function($) { return { skin: headerSkin
 var MainScreen = SCREEN.EmptyScreen.template(function($) { return { 
 	contents: [
 	$.tabs[$.selection].Pane($.tabs[$.selection], { anchor: 'BODY', }),
-	SCREEN.TabFooter($, { anchor: 'FOOTER', }),
+	SCREEN.TabFooter($, {style: footerStyle, skin: footerSkin,anchor: 'FOOTER', }),
 	$.tabs[$.selection].Header($.tabs[$.selection], { anchor: 'HEADER', }),
 	]
 }});
