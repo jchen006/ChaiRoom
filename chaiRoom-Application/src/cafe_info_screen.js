@@ -135,4 +135,4 @@ Header($, { anchor: 'HEADER', }),
 ]
 }});	
 
-exports.CafeInfo = CafeInfo
+exports.CafeInfo = CafeInfo;

@@ -7,7 +7,10 @@ var SCROLLER = require('mobile/scroller');
 var TOOL = require('mobile/tool');
 var KEYBOARD = require('mobile/keyboard');
 var DIALOG = require('mobile/dialog');
-var CAFEINFO = require('./cafeinfo')
+
+//Expots
+var cafe_info_screen = require('./cafe_info_screen')
+var CAFEDATA = require('./cafe_data')
 
 deviceURL = "";
 user_id = "";
@@ -46,75 +49,7 @@ var inputTextFieldSkin = new Skin({ fill:"#edecec",borders: {color: 'black', lef
 var fieldStyle = new Style({ color: 'black', font: '20px', horizontal: 'left' });
 var fieldHintStyle = new Style({ color: 'black', font: '18px', horizontal: 'left', vertical: 'middle', left: 5, right: 5, top: 5, bottom: 5, });
 
-//Cafe Data 
-CafesData =  {
-	"northsidecafe":{
-		name: "Northside Cafe", 
-		address : "1878 Euclid Ave, Berkeley, CA 94709",
-		hours: [
-		"Mon-Fri 7:30 am - 7:00 pm",
-		"Sat-Sun 9:00 am - 5:00 pm"],
-		phone: "(510) 845-3663",
-		totalSeats: "...",
-		openSeats: "...",
-		openSoonSeats: "...",
-		map: "assets/northside.png",
-		myChairs: 0,
-	},
-	"cafebluedoor":{
-		name: "Cafe Blue Door", 
-		address : "2244 Bancroft WayBerkeley, CA 94704",
-		hours: [
-		"Mon-Thu 7:30 am - 10:00 pm",
-		"Fri	 7:30 am - 9:00 pm",
-		"Sat-Sun 9:00 am - 9:00 pm"],
-		phone: "(510) 665-6000",
-		totalSeats: "...",
-		openSeats: "...",
-		openSoonSeats: "...",
-		map: "assets/bluedoor.png",
-		myChairs: 0,
-	},
-	"cafestrada":{
-		name: "Cafe Strada", 
-		address : "2300 College Ave Berkeley, CA 94704",
-		hours: [
-		"Mon-Sun 6:00 am - 12:00 am"],
-		phone: "(510) 843-5282",
-		totalSeats: "...",
-		openSeats: "...",
-		openSoonSeats: "...",
-		map: "assets/strada.png",
-		myChairs: 0,
-	},
-	"cafemilano":{
-		name: "Cafe Milano", 
-		address : "2522 Bancroft Way Berkeley, CA 94704",
-		hours: [
-		"Mon-Thu 7:00 am - 12:00 am",
-		"Fri	 7:00 am - 10:00 pm",
-		"Sat-Sun 8:00 am - 10:00 pm"],
-		phone: "(510) 644-3100",
-		totalSeats: "...",
-		openSeats: "...",
-		openSoonSeats: "...",
-		map: "assets/milano.png",
-		myChairs: 0,
-	},
-	"yaliscafe":{
-		name: "Yali's Cafe", 
-		address : "1920 Oxford St Berkeley, CA 94704",
-		hours: [
-		"Mon-Fri 7:00 am - 7:00 pm",
-		"Sat-Sun 8:00 am - 5:00 pm"],
-		phone: "(510) 843-2233",
-		totalSeats: "...",
-		openSeats: "...",
-		openSoonSeats: "...",
-		map: "assets/yali.png",
-		myChairs: 0,
-	},
-}
+
 
 var values = function(dic){ 
 	return Object.keys(dic).map(function(key){
@@ -154,7 +89,7 @@ Handler.bind("/main",
 					{
 						Header: Header,
 						Pane: HomePane,
-						items: values(CafesData),
+						items: values(CAFEDATA.CafesData),
 						more: false,
 						scroll: {x: 0, y:0},
 						selection: -1,
@@ -201,7 +136,7 @@ Handler.bind("/cafe", Object.create(MODEL.ScreenBehavior.prototype, {
 	}},
 	onDescribe: { value: function(query, selection) {
 		return {
-			Screen: CAFEINFO.CafeInfo,
+			Screen: cafe_info_screen.CafeInfo,
 			title: selection.name,
 			name: selection.name, 
 			address : selection.address,
@@ -281,10 +216,10 @@ Handler.bind("/data", Behavior({
 	},
 	onComplete: function(handler,message,json){
 		if(json == null) return
-		CafesData["northsidecafe"].totalSeats = json.totalSeats;
-		CafesData["northsidecafe"].openSeats = json.openSeats;
+		CAFEDATA.CafesData["northsidecafe"].totalSeats = json.totalSeats;
+		CAFEDATA.CafesData["northsidecafe"].openSeats = json.openSeats;
 		var userReservations = json.reservations;
-		CafesData["northsidecafe"].reservations = userReservations["valid"];
+		CAFEDATA.CafesData["northsidecafe"].reservations = userReservations["valid"];
 		var notifyAboutCancelledReservations = function(cancelled){
 			for (var i in cancelled){
 				var c = cancelled[i];
@@ -293,7 +228,7 @@ Handler.bind("/data", Behavior({
 			}
 		}
 		notifyAboutCancelledReservations(userReservations["cancelled"]);
-		cafeList["northsidecafe"].openSeatsLabel.string = CafesData["northsidecafe"].openSeats;
+		cafeList["northsidecafe"].openSeatsLabel.string = CAFEDATA.CafesData["northsidecafe"].openSeats;
 		handler.invoke( new Message( "/delay?duration=700" ) );
 	}
 }));
