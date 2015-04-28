@@ -37,8 +37,8 @@ exports.configure = function() {
 					valueID : "chairs",
 					defaultControl : PinsSimulators.SLIDER,
 					minValue : 0,
-					maxValue : 30,
-					value : 30
+					maxValue : 20,
+					value : 20
 				}
 			),
 		]
