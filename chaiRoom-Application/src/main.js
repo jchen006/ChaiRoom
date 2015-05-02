@@ -33,14 +33,13 @@ var headerSkin = new Skin({ fill: '#aeacac',});
 var separatorSkin = new Skin({ fill: '#30A8BE',});
 var cafeInfoSkin = new Skin({ fill: '#30A8BE',});
 var footerSkin = new Skin({ fill: ['#30A8BE','white'],});
-var footerStyle = new Style({font: "14px Helvetica bold", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
+var footerStyle = new Style({font: "14px Helvetica", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
 
-var itemNameStyle = new Style({ color:'white', font: 'bold', horizontal: 'null', vertical: 'null', lines: 1, });
-var buttonText = new Style({font: "21px Helvetica bold", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
-var listText = new Style({font: "22px Helvetica Neue bold", color:"#30A8BE",});
-var cafeInfoTitleStyle = new Style({font: "25px Oswald DemiBold", color:"black", horizontal: 'center', vertical: 'middle',});
+var headerText = new Style({font: "18px Helvetica bold", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
+var buttonText = new Style({font: "18px Helvetica bold", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
+var listText = new Style({font: "22px Helvetica Neue Light", color:"#30A8BE",});
 var cafeInfoTextStyle = new Style({font: "18px Helvetica Neue Light", color:"black", horizontal: 'center', vertical: 'middle',});
-var cafeInfoLabelStyle = new Style({font: "20px Helvetica Neue bold", color:"#30A8BE", vertical: 'middle',});
+var cafeInfoLabelStyle = new Style({font: "20px Helvetica Neue Light", color:"#30A8BE", vertical: 'middle',});
 
 var filterButtonStyle = new Style({  font: 'bold',color:'white' , horizontal: 'center', vertical: 'middle',});
 var backgroundSkin = new Skin({ fill: 'white',});
@@ -182,7 +181,7 @@ Handler.bind("/main",
 						scroll: {x: 0, y:0},
 						selection: -1,
 						variant: 0,
-						title: "Map View",
+						title: "MapView",
 					},
 					]
 				};
@@ -571,7 +570,7 @@ var MainScreen = SCREEN.EmptyScreen.template(function($) { return {
 	contents: [
 	$.tabs[$.selection].Pane($.tabs[$.selection], { anchor: 'BODY', }),
 	SCREEN.TabFooter($, {style: footerStyle, skin: footerSkin,anchor: 'FOOTER', }),
-	$.tabs[$.selection].Header($.tabs[$.selection], { anchor: 'HEADER', }),
+	$.tabs[$.selection].Header($.tabs[$.selection], { style: buttonText, anchor: 'HEADER', }),
 	]
 }});
 

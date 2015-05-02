@@ -6,27 +6,30 @@ var THEME = require('themes/sample/theme');
 
 var MINUTES_BEFORE_EXPIRED = 1; // CHANGE ME TO 0 FOR TESTING -- I SOULD BE 20
 // assets
-var openSeatIcon = '../assets/open.png';
-var reservedSeatIcon = '../assets/reserved.png';
-var occupiedSeatIcon = '../assets/occupied.png';
-var floorIcon = '../assets/floor2.png'
+var openSeatIcon = '../assets/empty-chair.png';
+var reservedSeatIcon = '../assets/blue-chair-grey-person.png';
+var occupiedSeatIcon = '../assets/blue-chair-person.png';
+
+var floorIcon = '../assets/chair-button.png'
+
 var northsideFloor = '../assets/northside_floor.png'
-var roundTableIcon = '../assets/round-table.png'
-var recTableIcon = '../assets/rec-table.png'
-var chairOccupiedIcon = '../assets/chair-red.png'
-var chairOpenIcon = '../assets/chair-green.png'
-var chairReservedIcon = '../assets/chair-gray.png'
+
+var roundTableIcon = '../assets/circle_table.png'
+var recTableIcon = '../assets/square_table.png'
+var lcdIcon = '../assets/lcd.png'
+
+//var chairOccupiedIcon = '../assets/chair-red.png'
+//var chairOpenIcon = '../assets/chair-green.png'
+//var chairReservedIcon = '../assets/chair-gray.png'
+
 var chairDetailIcon = '../assets/chair-detail.png'
-var backIcon = '../assets/back.png'
+var backIcon = '../assets/blue-arrow.png'
 
 var chairIcon = function(state,orientation){
 	return '../assets/chair' + state + '-' + orientation +'.png'
 }
-var chairVIcon = function(state,orientation){
-	return '../assets/chair' + state + '-v.png'
-}
-var chairHIcon = function(state,orientation){
-	return '../assets/chair' + state + '-h.png'
+var chairIconFlip = function(state,orientation){
+	return '../assets/chair' + state + '-f.png'
 }
 
 var OPEN = 'Open'
@@ -34,13 +37,16 @@ var OCCUPIED = 'Occupied'
 var RESERVED = 'Reserved'
 
 // Styles
-var labelStyle = new Style({ font:"bold 16px", color:"black", horizontal:"left", vertical:"middle" });
-var titleStyle = new Style({ font:"bold 30px", color:"black", horizontal:"center", vertical:"middle" });
-var centerStyle = new Style({ color:"black", horizontal:"center", vertical:"middle" });
-var openStyle = new Style({ font:"bold 30px DS-Digital",color:"green", horizontal:"center", vertical:"middle" });
-var occupiedStyle = new Style({font:"bold 30px DS-Digital", color:"red", horizontal:"center", vertical:"middle" });
-var reservedStyle = new Style({ font:"bold 30px DS-Digital",color:"gray", horizontal:"center", vertical:"middle" });
+var countStyle = new Style({ font:"25px Helvetica bold", color:"#30A8BE", horizontal:"right", vertical:"middle" });
+var listStyle = new Style({ font:"25px Helvetica Light", color:"#30A8BE", horizontal:"middle", vertical:"middle" });
 
+var titleStyle = new Style({ font:"bold 30px", color:"#30A8BE", horizontal:"center", vertical:"middle" });
+var centerStyle = new Style({ color:"#f2f5f1",horizontal:"center", vertical:"middle" });
+
+var openStyle = new Style({ font:"bold 30px",color:"white", horizontal:"center", vertical:"middle" });
+var occupiedStyle = new Style({font:"bold 30px", color:"white", horizontal:"center", vertical:"middle" });
+var reservedStyle = new Style({ font:"bold 30px",color:"white", horizontal:"center", vertical:"middle" });
+var separatorSkin = new Skin({ fill: '#30A8BE',});
 
 // Handlers
 var changeChairStatus = function(n, currStatus, newStatus, newStyle){
@@ -162,47 +168,64 @@ Handler.bind("/data", {
 	}
 });
 // layouts
+var iconSize = 45
 var MainScreen = Container.template(function($) { return {
 	left:0, right:0, top:0, bottom:0,
 	skin: new Skin({ fill: "white" }),
 	contents: [
-	Column($,{ style: titleStyle, top:5,
+	Column($,{ left:0,right:0,bottom:0, top:0,  
 		contents: [
-		this.cafeName = Label($, { style: titleStyle},),
-		this.total = Label($, {top:5,  style:labelStyle },),
-		Line($,{ style: titleStyle, 
+		Line($,{  left:0,right:0, top:5,style: centerStyle,bottom:0,
 			contents: [
-			Picture($,{height:70,width:70,url:openSeatIcon,style: centerStyle,aspect: 'fit'}),
-			this.available= Label($, { top:35,  style:labelStyle, },),
+				Picture($,{height:40,width:40,left:5, url: floorIcon,aspect: 'fit', active: true, behavior: 
+				Object.create(CONTROL.ButtonBehavior.prototype, {
+					onTap: { value: function(container) {
+						trace("clicked")
+						application.add(model.cafeFloor)
+						application.distribute("onModelChanged");
+						
+					}},
+					})
+				}),
+				this.cafeName = Label($, {left:30, style: titleStyle},),
 			]}),
-		Line($,{left:0, style: titleStyle, top:20,
+		Line($,{  left:0,right:0, top:5,style: centerStyle,bottom:0,
 			contents: [
-			Picture($,{height:60,width:60,url:reservedSeatIcon,style: centerStyle,aspect: 'fit'}),
-			this.reserved= Label($, {top:20,   style:labelStyle },),
-			Picture($,{height:60,width:60,url:occupiedSeatIcon,style: centerStyle,aspect: 'fit'}),
-			this.occupied= Label($, {top:20,  style:labelStyle, },),
+			Picture($,{left:0,bottom:5, height:iconSize,width:iconSize, url:openSeatIcon,style: centerStyle, aspect: 'fit'}),
+			Label($, {left:20,bottom:5,  style: listStyle,string :"Open Seats: " },),
+			this.available= Label($, {left:40,bottom:5,  style: countStyle, },),
+			]}),
+		Line($, { left: 10, right: 10, height: 1.5, skin: separatorSkin, }),
+		Line($,{left:0,right:0, style: centerStyle, top:5,
+			contents: [
+			Picture($,{left:0,bottom:5,height: iconSize,width: iconSize,url:occupiedSeatIcon,style: centerStyle,aspect: 'fit'}),
+			Label($, {left:20,bottom:5, style: listStyle,string :"Occupied Seats: " },),
+			this.occupied= Label($, {left:5,bottom:5,  style: countStyle, },),
 			]
 		}),
-		Picture($,{height:40,width:40, url: floorIcon,right:5,aspect: 'fit', active: true, behavior: 
-	Object.create(CONTROL.ButtonBehavior.prototype, {
-		onTap: { value: function(container) {
-			trace("clicked")
-			
-			
-			application.add(model.cafeFloor)
-			application.distribute("onModelChanged");
-			
-		}},})
-		})
+		Line($, { left: 10, right: 10, height: 1.5, skin: separatorSkin, }),
+		Line($,{left:0,right:0,  top:5,bottom:0,
+			contents: [
+			Picture($,{left:0,bottom:5,height: iconSize,width: iconSize,url:reservedSeatIcon,style: centerStyle,aspect: 'fit'}),
+			Label($, {left:20,bottom:5,  style: listStyle,string :"Reserved Seats: " },),
+			this.reserved= Label($, { left:0,bottom:5, style: countStyle },),
+			]
+		}),
+		Line($, { left: 10, right: 10, height: 1.5, skin: separatorSkin, }),
+		Line($,{left:0,right:0, style: centerStyle, top:5,
+		contents: [
+			Label($, {left:80, style: listStyle,string :"Total Seats: " },),
+			this.total = Label($, {left:40,  style: countStyle },),
+			]})
 		]})
 	],
 	behavior: Object.create(Behavior.prototype, {
 		onModelChanged: { value: function(container) {
-			container.available.string  =  "Open : "  + model.data.openSeats ;
-			container.reserved.string  = "Reserved : " + model.data.reservedSeats ;
-			container.occupied.string  = "Occupied : " + model.data.occupiedSeats ;
+			container.available.string  =   String(model.data.openSeats) ;
+			container.reserved.string  =  String(model.data.reservedSeats) ;
+			container.occupied.string  =   String(model.data.occupiedSeats) ;
 			var total = parseInt(model.data.occupiedSeats) + parseInt(model.data.reservedSeats) + parseInt(model.data.openSeats) ;
-			container.total.string  = "Total Seats: " + String(total);
+			container.total.string  =  String(total);
 			container.cafeName.string  = model.data.cafeName;
 		}},
 	}),
@@ -211,14 +234,16 @@ var CafeFloor =  Container.template(function($) { return {
 	left:0, right:0, top:0, bottom:0,
 	skin: new Skin({ fill: "white" }),
 	contents: [
-	Picture ($,{left:2, right:2, top:2, bottom:2,url: northsideFloor }),
-	Picture ($,{bottom:0,right:0,height:40,width:40,url: backIcon , active: true, behavior: 
+	Line($,{left:0,right:0,top:5,
+			contents: [
+	Picture ($,{left:0,top:5,bottom:10,height:40,width:40,url: backIcon , active: true, behavior: 
 				Object.create(CONTROL.ButtonBehavior.prototype, {
 				onTap: { value: function(container) {
 				application.remove(application.last)
 					
 			}},})
-		}),
+		})
+		]})
 	]
 	}})
 var Table =  Container.template(function($) { return {
@@ -235,11 +260,11 @@ var Chair = Container.template(function($) { return {
 	}})
 
 var RoundTable  = Container.template(function($) { return {
-	height:70,width:70,right:$.right,top:$.top,
+	height:85,width:85,right:$.right,top:$.top,
 	name :$.name,
 	skin: new Skin({ fill: "white" }),
 	contents: [
-		Picture ($,{height:40,width:40,url: roundTableIcon }),
+		Picture ($,{height:65,width:65, url: roundTableIcon }),
 		Picture ($,{name: "chair1",left:0,height:30,width:15,url: chairIcon(OPEN,'v') , active: true, behavior: 
 			Object.create(CONTROL.ButtonBehavior.prototype, {
 			onTap: { value: function(container) {
@@ -335,11 +360,11 @@ var RoundTable  = Container.template(function($) { return {
 	}})
 	
 var RecTable  = Container.template(function($) { return {
-	height:55,width:60,right:$.right,top:$.top,
+	height:62,width:75,right:$.right,top:$.top,
 	name :$.name,
 	skin: new Skin({ fill: "white" }),
 	contents: [
-		Picture ($,{height:40,width:60,url: recTableIcon }),
+		Picture ($,{height:85,width:75,url: recTableIcon }),
 		Picture ($,{name: "chair1",top:0,left:2,height:15,width:25,url: chairIcon(OPEN,'h') , active: true, behavior: 
 			Object.create(CONTROL.ButtonBehavior.prototype, {
 			onTap: { value: function(container) {
@@ -437,11 +462,12 @@ var ChairDetail  = Container.template(function($) { return {
 	left:0,right:0,bottom:0,top:0,
 	skin: new Skin({ fill: "white" }),
 	contents: [
-		Picture ($,{left:10,right:10,bottom:10,top:10,url: chairDetailIcon }),
-		Column($,{style: centerStyle,width:100,height:100,top:40,left:135,
+		Picture ($,{left:95,bottom:50,width:200,height:200,url: lcdIcon }),
+		Picture ($,{width:130,height:130,left:0,bottom:20,url: chairIconFlip($.status) }),
+		Column($,{style: centerStyle,width:100,height:100,top:60,left:145,
 		contents:[
 			Label($,{style: $.style , string:$.status}),
-			Label($, {top:10,style: centerStyle, string:$.reservationName}),
+			Label($, {top:0,style: centerStyle, string:$.reservationName}),
 			
 		]
 		}),
@@ -474,14 +500,14 @@ ApplicationBehavior.prototype =  Object.create(MODEL.ApplicationBehavior.prototy
 		application.add(this.mainScreen);
 		
 		this.cafeFloor = new CafeFloor();
-		var table1 = new RoundTable({right:35,top:25, name:"table1"})
+		var table1 = new RoundTable({right:20,top:25, name:"table1"})
 			
 		this.cafeFloor.add(table1)
-		this.cafeFloor.add(new RoundTable({right:35,top:110, name:"table2"}))
+		this.cafeFloor.add(new RoundTable({right:20,top:140, name:"table2"}))
 		this.cafeFloor.add(new RoundTable({right:130,top:150, name:"table3"}))
 			
-		this.cafeFloor.add(new RecTable({right:215,top:70, name:"table4"}))
-		this.cafeFloor.add(new RecTable({right:215,top:150, name:"table5"}))
+		this.cafeFloor.add(new RecTable({right:240,top:70, name:"table4"}))
+		this.cafeFloor.add(new RecTable({right:240,top:140, name:"table5"}))
 		application.distribute("onModelChanged");
 		//
 	}},
@@ -493,7 +519,7 @@ ApplicationBehavior.prototype =  Object.create(MODEL.ApplicationBehavior.prototy
 			occupiedSeats:0,
 			reservationModel:{},
 			totalSeats: 20,
-			cafeName:"Northside Cafe",
+			cafeName:"NORTHSIDE CAFE",
 			chairs:{}
 		};
 		var message = new MessageWithObject("pins:configure", {
