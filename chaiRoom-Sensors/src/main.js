@@ -4,7 +4,7 @@ var CONTROL = require("mobile/control");
 var TOOL = require('mobile/tool');
 var THEME = require('themes/sample/theme');
 
-var MINUTES_BEFORE_EXPIRED = 1; // CHANGE ME TO 0 FOR TESTING -- I SOULD BE 20
+var MINUTES_BEFORE_EXPIRED = 2; // CHANGE ME TO 0 FOR TESTING -- I SOULD BE 20
 // assets
 var openSeatIcon = '../assets/empty-chair.png';
 var reservedSeatIcon = '../assets/blue-chair-grey-person.png';
@@ -49,7 +49,7 @@ var reservedStyle = new Style({ font:"bold 30px",color:"white", horizontal:"cent
 var separatorSkin = new Skin({ fill: '#30A8BE',});
 
 // Handlers
-var changeChairStatus = function(n, currStatus, newStatus, newStyle, newReservationName){
+var changeChairStatus1 = function(n, currStatus, newStatus, newStyle, newReservationName){
 trace("changing status of: " + n + "chairs \n")
 	var cafe = model.data.chairs
 	var chairs = []
@@ -65,6 +65,59 @@ trace("changing status of: " + n + "chairs \n")
 				}
 			}
 		}
+	}
+	return chairs
+}
+var changeChairStatus = function(n, currStatus, newStatus, newStyle, newReservationName){
+trace("changing status of: " + n + " chairs \n")
+	var cafe = model.data.chairs
+	var chairs = []
+	var openChairs = {"best": [], "good": []}
+	for (var table in cafe){
+		var temp = []
+		if(cafe.hasOwnProperty(table)){
+			
+			for(var chair in cafe[table]){
+				
+				if (cafe[table][chair].status == currStatus ){
+					//cafe[table][chair].status = newStatus
+					//cafe[table][chair].style = newStyle
+					//cafe[table][chair].reservationName = newReservationName
+					
+					temp.push(cafe[table][chair])
+				}
+				
+				if (temp.length > n || temp.length == 4){
+					Array.prototype.push.apply(openChairs["best"],temp)
+				}else{
+					Array.prototype.push.apply(openChairs["good"],temp)
+				}
+			}
+		}
+		
+	}
+	//trace(openChairs["best"].length)
+	for(var i in openChairs["best"]){
+		if(n > 0){
+			var chair = openChairs["best"][i]
+			cafe[chair.table][chair.name].status = newStatus
+			cafe[chair.table][chair.name].style = newStyle
+			cafe[chair.table][chair.name].reservationName = newReservationName
+			chairs.push(cafe[chair.table][chair.name])
+			n --
+		}
+		
+	}
+	for(var i in openChairs["good"]){
+		if(n > 0){
+			var chair = openChairs["good"][i]
+			cafe[chair.table][chair.name].status = newStatus
+			cafe[chair.table][chair.name].style = newStyle
+			cafe[chair.table][chair.name].reservationName = newReservationName
+			chairs.push(cafe[chair.table][chair.name])
+			n --
+		}
+		
 	}
 	return chairs
 }
@@ -140,34 +193,69 @@ Handler.bind("/cancel", Object.create(Behavior.prototype, {
 		},
 	}
 }));
-
+var getKeys = function(obj){
+									   var keys = [];
+									   for(var key in obj){
+									      keys.push(key);
+									   }
+									   return keys;
+									}
 Handler.bind("/locateSeats", Object.create(Behavior.prototype, {
 	onInvoke: { value:
 		function(handler, message) {
 			trace("LocateSeats")
 			var query = parseQuery( message.query );
+			this.data = query
 			var user_id = query.user_id;
 			var id = query.cafeId;
+			var n = query.n
+			if (n == 0) return
 			var nameOfReservation = query.nameOfReservation
 			var reservationModel = model.data.reservationModel;
 			var reservations =reservationModel[user_id]
 			var seats 
+			var cafe = model.data.chairs
 			for(var i in reservations){
 				if(reservations[i].cafeId === id && reservations[i].name === nameOfReservation && reservations[i].active){
 					seats = reservations[i].seats
+					
+					//while( n > 0){
+						trace(" n : " + n + "\n")
+						
+						for(var i in seats){
+							var seat = seats[i]
+							var chair = cafe[seat.table][seat.name]
+								var status = chair.status === OPEN? RESERVED : OPEN
+								chair.status = status
+							}
+						application.distribute("onModelChanged");
+						
+						handler.wait( 500 )
+						
+					//}
 				}
 			}
 			
 		},
-	}
-}));
-var blink = function(seats){
-	for(var i in seats){
-		var seat = seats[i]
-		chairIcon(table.chair1.status,table.chair1.orientation)
-	}
+		
+	},
+	onComplete: { value: 
+		function(handler,message,json,data) {
+			trace("onComplete locating seats")
+			trace(this.data.n)
+			//var query = parseQuery( message.query );
+			var user_id = this.data.user_id;
+			var id = this.data.cafeId;
+			var nameOfReservation = this.data.nameOfReservation
+			var n = parseInt(this.data.n)
+			var params = "?user_id=" +user_id +"&nameOfReservation="+ nameOfReservation  + "&cafeId="+ id + "&n=" + --n ;
+			handler.invoke(new Message("/locateSeats" + params));
+			
+		},
+	},
+})
+);
 
-}
 
 var checkExpiredReservations = function(r){
 			var now = new Date();
@@ -371,10 +459,10 @@ var RoundTable  = Container.template(function($) { return {
 		onCreate: { value: function(container, data) {
 			this.data = data;
 			if(!model.data.chairs.hasOwnProperty(container.name)){
-			model.data.chairs[container.name] = {chair1:{status: OPEN,orientation:'v', style: openStyle,reservationName:''},
-												chair2:{status: OPEN,orientation:'v', style: openStyle,reservationName:''},
-												chair3:{status: OPEN,orientation:'h', style: openStyle,reservationName:''},
-												chair4:{status: OPEN,orientation:'h', style: openStyle,reservationName:''}}
+			model.data.chairs[container.name] = {chair1:{name:"chair1",table:container.name,status: OPEN,orientation:'v', style: openStyle,reservationName:''},
+												chair2:{name:"chair2",table:container.name,status: OPEN,orientation:'v', style: openStyle,reservationName:''},
+												chair3:{name:"chair3",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''},
+												chair4:{name:"chair4",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''}}
 												}
 		}},
 		onModelChanged: { value: function(container) {
@@ -471,10 +559,10 @@ var RecTable  = Container.template(function($) { return {
 		onCreate: { value: function(container, data) {
 			this.data = data;
 			if(!model.data.chairs.hasOwnProperty(container.name)){
-				model.data.chairs[container.name] = {chair1:{status: OPEN,orientation:'h', style: openStyle,reservationName:''},
-												chair2:{status: OPEN,orientation:'h', style: openStyle,reservationName:''},
-												chair3:{status: OPEN,orientation:'h', style: openStyle,reservationName:''},
-												chair4:{status: OPEN,orientation:'h', style: openStyle,reservationName:''}}
+				model.data.chairs[container.name] = {chair1:{name:"chair1",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''},
+												chair2:{name:"chair2",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''},
+												chair3:{name:"chair3",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''},
+												chair4:{name:"chair4",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''}}
 												}
 		}},
 		onModelChanged: { value: function(container) {
@@ -495,19 +583,19 @@ var RecTable  = Container.template(function($) { return {
 				return mergeURI(application.url , url) === uri
 			}
 			if(!isUrlEqual(chair1URL,chair1.url)){
-			trace("chair 1 changed status" + "\n")
+			trace("chair 1 changed status to " + table.chair1.status +  "\n")
 				chair1.url = chair1URL
 				}
 			if(!isUrlEqual(chair2URL,chair2.url)){
-				trace("chair 2 changed status" + "\n")
+				trace("chair 2 changed status to " + table.chair2.status +  "\n")
 				chair2.url = chair2URL
 				}
 			if(!isUrlEqual(chair3URL,chair3.url)){
-			trace("chair 3 changed status" + "\n")
+			trace("chair 3 changed status to " + table.chair3.status +  "\n")
 				chair3.url = chair3URL
 				}
 			if(!isUrlEqual(chair4URL,chair4.url)){
-			trace("chair 4 changed status" + "\n")
+			trace("chair 4 changed status to " + table.chair4.status +  "\n")
 				chair4.url = chair4URL
 				}
 		}},

@@ -10,7 +10,7 @@ var DIALOG = require('mobile/dialog');
 
 deviceURL = "";
 user_id = "";
-
+N = 12
 //All Icon Images
 var chairIcon = './assets/chair-blue.png';
 var searchIcon = './assets/search.png';
@@ -322,7 +322,7 @@ Handler.bind("/data", Behavior({
 		cafeList["northsidecafe"].openSeatsLabel.string = CafesData["northsidecafe"].openSeats;
 		trace(getKeys(model.data))
 				
-		handler.invoke( new Message( "/delay?duration=700" ) );
+		handler.invoke( new Message( "/delay?duration=300" ) );
 	}
 }));
 Handler.bind("/delay", Object.create(Behavior.prototype, {
@@ -475,6 +475,8 @@ var ReservationItemLine = Line.template(function($) {
 						Object.create(CONTROL.ButtonBehavior.prototype, {
 							onTap: { value: function(container) {
 								trace("show me my chairs")
+								var params = "?user_id=" +user_id +"&nameOfReservation="+ ($.name).replace(/[_\s]/g, '%20') + "&cafeId="+ $.cafeId + "&n=" + N ;
+										application.invoke(new Message(deviceURL +"locateSeats" + params), Message.JSON);
 								
 							}},
 					}),}),
