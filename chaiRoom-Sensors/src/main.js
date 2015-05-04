@@ -49,7 +49,7 @@ var reservedStyle = new Style({ font:"bold 30px",color:"white", horizontal:"cent
 var separatorSkin = new Skin({ fill: '#30A8BE',});
 
 // Handlers
-var changeChairStatus = function(n, currStatus, newStatus, newStyle){
+var changeChairStatus = function(n, currStatus, newStatus, newStyle, newReservationName){
 trace("changing status of: " + n + "chairs \n")
 	var cafe = model.data.chairs
 	var chairs = []
@@ -57,9 +57,9 @@ trace("changing status of: " + n + "chairs \n")
 		if(cafe.hasOwnProperty(table)){
 			for(var chair in cafe[table]){
 				if (cafe[table][chair].status == currStatus && n > 0){
-				trace(newStatus + chair+ " from " + table + " s: " + cafe[table][chair].status + "\n")
 					cafe[table][chair].status = newStatus
 					cafe[table][chair].style = newStyle
+					cafe[table][chair].reservationName = newReservationName
 					n--
 					chairs.push(cafe[table][chair])
 				}
@@ -85,9 +85,9 @@ Handler.bind("/seats", {
 		// occupied new seats
 		var currOccupiedSeats = model.data.occupiedSeats
 		if(currOccupiedSeats < newOccupiedSeats)
-			changeChairStatus(newOccupiedSeats - currOccupiedSeats, OPEN,OCCUPIED, occupiedStyle)
+			changeChairStatus(newOccupiedSeats - currOccupiedSeats, OPEN,OCCUPIED, occupiedStyle,"")
 		else{
-			changeChairStatus( currOccupiedSeats - newOccupiedSeats,OCCUPIED, OPEN, openStyle)
+			changeChairStatus( currOccupiedSeats - newOccupiedSeats,OCCUPIED, OPEN, openStyle,"")
 		}
 		model.data.occupiedSeats = newOccupiedSeats.toFixed(0); 
 		application.distribute("onModelChanged");
@@ -103,25 +103,72 @@ Handler.bind("/reserve", Object.create(Behavior.prototype, {
 			var user_id = query.user_id;
 			var id = query.cafeId;
 			var name = query.cafeName;
+			var nameOfReservation = query.nameOfReservation
 			var numOfReservedSeats = query.numOfReservedSeats;
-			var reservedChairs = changeChairStatus(numOfReservedSeats,OPEN, RESERVED,reservedStyle)
-			for(var i in reservedChairs){
-				reservedChairs[i].reservationName = user_id
-			}
+			var reservedChairs = changeChairStatus(numOfReservedSeats,OPEN, RESERVED,reservedStyle,"By: " + nameOfReservation)
+			if (parseInt(numOfReservedSeats) < 0 ) return
 			model.data.openSeats = parseInt(model.data.openSeats) - parseInt(numOfReservedSeats)
 			model.data.reservedSeats = parseInt(model.data.reservedSeats) + parseInt(numOfReservedSeats);
 			
-			var new_reservation = {cafeId: id,cafeName:name, time:new Date(),numberOfSeats: numOfReservedSeats, seats: reservedChairs, active: true};
+			var new_reservation = {name: nameOfReservation,cafeId: id,cafeName:name, time:new Date(),numberOfSeats: numOfReservedSeats, seats: reservedChairs, active: true};
 			var reservationModel = model.data.reservationModel;
 			if(!(user_id in reservationModel)){
 				reservationModel[user_id] = [];
 			}
+			//trace(new_reservation)
 			reservationModel[user_id].push(new_reservation);
 			model.data.reservationModel[user_id] = reservationModel[user_id];
 			application.distribute("onModelChanged");
 		},
 	}
 }));
+Handler.bind("/cancel", Object.create(Behavior.prototype, {
+	onInvoke: { value:
+		function(handler, message) {
+			trace("cancelling")
+			var query = parseQuery( message.query );
+			var user_id = query.user_id;
+			var id = query.cafeId;
+			var nameOfReservation = query.nameOfReservation
+			var reservationModel = model.data.reservationModel;
+			var reservations =reservationModel[user_id]
+			for(var i in reservations){
+				if(reservations[i].cafeId === id && reservations[i].name === nameOfReservation && reservations[i].active){
+					cancelReservation(reservations[i])
+				}
+			}
+		},
+	}
+}));
+
+Handler.bind("/locateSeats", Object.create(Behavior.prototype, {
+	onInvoke: { value:
+		function(handler, message) {
+			trace("LocateSeats")
+			var query = parseQuery( message.query );
+			var user_id = query.user_id;
+			var id = query.cafeId;
+			var nameOfReservation = query.nameOfReservation
+			var reservationModel = model.data.reservationModel;
+			var reservations =reservationModel[user_id]
+			var seats 
+			for(var i in reservations){
+				if(reservations[i].cafeId === id && reservations[i].name === nameOfReservation && reservations[i].active){
+					seats = reservations[i].seats
+				}
+			}
+			
+		},
+	}
+}));
+var blink = function(seats){
+	for(var i in seats){
+		var seat = seats[i]
+		chairIcon(table.chair1.status,table.chair1.orientation)
+	}
+
+}
+
 var checkExpiredReservations = function(r){
 			var now = new Date();
 			var cancelled = []
@@ -137,6 +184,7 @@ var checkExpiredReservations = function(r){
 						cancelled.push(reservation)
 						cancelReservation(reservation)
 					}else{
+						reservation.remainTime = MINUTES_BEFORE_EXPIRED - minutes
 						valid.push(reservation)
 					}
 				}
@@ -144,13 +192,11 @@ var checkExpiredReservations = function(r){
 			return {"cancelled":cancelled, "valid":valid };
 	}
 var cancelReservation = function(reservation){
-	var cancelledSeats = changeChairStatus(reservation.numberOfSeats,RESERVED, OPEN,openStyle)
-	for(var i in cancelledSeats){
-		cancelledSeats[i].reservationName = ""
-	}
-	application.distribute("onModelChanged");
+	var cancelledSeats = changeChairStatus(reservation.numberOfSeats,RESERVED, OPEN,openStyle,"")
+	if (reservation.active == false) return
 	reservation.active = false;
 	model.data.reservedSeats = parseInt(model.data.reservedSeats) - parseInt(reservation.numberOfSeats) ;
+	application.distribute("onModelChanged");
 }
 // params
 // user_id
@@ -163,6 +209,19 @@ Handler.bind("/data", {
 			userReservations =  checkExpiredReservations(model.data.reservationModel[user_id])
 		}
 		var data = {reservations: userReservations, totalSeats: model.data.totalSeats,openSeats: model.data.openSeats };
+		message.responseText = JSON.stringify( data );
+		message.status = 200;
+	}
+});
+Handler.bind("/myReservations", {
+	onInvoke: function(handler, message) {
+		var query = parseQuery( message.query );
+		var user_id = query.user_id
+		var userReservations = {"cancelled":[], "valid":[] };
+		if(model.data.reservationModel.hasOwnProperty(user_id)){
+			userReservations =  checkExpiredReservations(model.data.reservationModel[user_id])
+		}
+		var data = userReservations["valid"]
 		message.responseText = JSON.stringify( data );
 		message.status = 200;
 	}
@@ -208,7 +267,7 @@ var MainScreen = Container.template(function($) { return {
 			contents: [
 			Picture($,{left:0,bottom:5,height: iconSize,width: iconSize,url:reservedSeatIcon,style: centerStyle,aspect: 'fit'}),
 			Label($, {left:20,bottom:5,  style: listStyle,string :"Reserved Seats: " },),
-			this.reserved= Label($, { left:0,bottom:5, style: countStyle },),
+			this.reserved= Label($, { left:10,bottom:5, style: countStyle },),
 			]
 		}),
 		Line($, { left: 10, right: 10, height: 1.5, skin: separatorSkin, }),
