@@ -307,9 +307,7 @@ Handler.bind("/data", Behavior({
 					LIST.behavior.reload(LIST)
 				}
 			ReservationData = userReservations["valid"];
-			if(ReservationData.length > 0){
-				//trace(ReservationData[0].name)
-			}
+			
 			var notifyAboutCancelledReservations = function(cancelled){
 			for (var i in cancelled){
 				var c = cancelled[i];
