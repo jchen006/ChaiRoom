@@ -33,12 +33,12 @@ var headerSkin = new Skin({ fill: '#aeacac',});
 var separatorSkin = new Skin({ fill: '#30A8BE',});
 var cafeInfoSkin = new Skin({ fill: '#30A8BE',});
 var footerSkin = new Skin({ fill: ['#30A8BE','white'],});
-var footerStyle = new Style({font: "14px Helvetica", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
+var footerStyle = new Style({font: "14px Helvetica Neue", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
 
-var headerText = new Style({font: "18px Helvetica bold", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
-var buttonText = new Style({font: "22px Helvetica bold", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
-var reserveButton = new Style({font: "25px Helvetica bold", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
-var clockStyle = new Style({font: "25px Helvetica bold", color:"#ffffff", horizontal: 'right', vertical: 'middle',});
+var headerText = new Style({font: "18px Helvetica Neue bold", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
+var buttonText = new Style({font: "22px Helvetica Neue bold", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
+var reserveButton = new Style({font: "25px Helvetica Neue bold", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
+var clockStyle = new Style({font: "25px Helvetica Neue bold", color:"#ffffff", horizontal: 'right', vertical: 'middle',});
 var listText = new Style({font: "22px Helvetica Neue", color:"#30A8BE",});
 var cafeInfoTextStyle = new Style({font: "20px Helvetica Neue", color:"black", horizontal: 'center', vertical: 'middle',});
 var cafeInfoLabelStyle = new Style({font: "22px Helvetica Neue bold", color:"#30A8BE", vertical: 'middle',});
@@ -50,9 +50,9 @@ var listSkin = new Skin({ fill: ['white', '#acd473'], });
 var inputTextFieldSkin = new Skin({ fill:"#ffffff",borders: {color: 'black', left:2, right:2, top:2, bottom:2 }, stroke: '#30A8BE',});
 var buttonSkin = new Skin({ fill:"#30A8BE",borders: {color: 'black', left:1, right:1, top:1, bottom:1 }, stroke: 'gray',});
 var resTitleSkin = new Skin({ fill:"#30A8BE",borders: {color: 'black', left:2, right:2, top:2, bottom:2 }, stroke: 'black',});
-var fieldStyle = new Style({ color: 'black', font: '20px', horizontal: 'left' });
-var resTextStyle = new Style({ color: 'black', font: '22px Helvetica', horizontal: 'center' });
-var fieldHintStyle = new Style({ color: 'black', font: '18px', horizontal: 'left', vertical: 'middle', left: 5, right: 5, top: 5, bottom: 5, });
+var fieldStyle = new Style({ color: 'black', font: '20px Helvetica Neue', horizontal: 'left' });
+var resTextStyle = new Style({ color: 'black', font: '22px Helvetica Neue', horizontal: 'center' });
+var fieldHintStyle = new Style({ color: 'black', font: '18px Helvetica Neue', horizontal: 'left', vertical: 'middle', left: 5, right: 5, top: 5, bottom: 5, });
 // Reservations
 ReservationData = []
 var duplicateReservations = function(id){
@@ -93,6 +93,18 @@ CafesData =  {
 		map: "assets/yali.png",
 		myChairs: 0,
 	},
+	"caffestrada":{
+		name: "Caffe Strada", 
+		address : "2300 College Ave Berkeley, CA 94704",
+		hours: [
+		"Mon-Sun 6:00 am - 12:00 am"],
+		phone: "(510) 843-5282",
+		totalSeats: "...",
+		openSeats: "...",
+		openSoonSeats: "...",
+		map: "assets/strada.png",
+		myChairs: 0,
+	},
 	"cafebluedoor":{
 		name: "Cafe Blue Door", 
 		address : "2244 Bancroft WayBerkeley, CA 94704",
@@ -105,18 +117,6 @@ CafesData =  {
 		openSeats: "...",
 		openSoonSeats: "...",
 		map: "assets/bluedoor.png",
-		myChairs: 0,
-	},
-	"cafestrada":{
-		name: "Cafe Strada", 
-		address : "2300 College Ave Berkeley, CA 94704",
-		hours: [
-		"Mon-Sun 6:00 am - 12:00 am"],
-		phone: "(510) 843-5282",
-		totalSeats: "...",
-		openSeats: "...",
-		openSoonSeats: "...",
-		map: "assets/strada.png",
 		myChairs: 0,
 	},
 	"cafemilano":{
@@ -317,6 +317,16 @@ Handler.bind("/data", Behavior({
 		
 		CafesData["yaliscafe"].totalSeats = json.cafesData["yaliscafe"].totalSeats;
 		CafesData["yaliscafe"].openSeats = json.cafesData["yaliscafe"].openSeats;
+		
+		CafesData["caffestrada"].totalSeats = json.cafesData["caffestrada"].totalSeats;
+		CafesData["caffestrada"].openSeats = json.cafesData["caffestrada"].openSeats;
+		
+		CafesData["cafebluedoor"].totalSeats = json.cafesData["cafebluedoor"].totalSeats;
+		CafesData["cafebluedoor"].openSeats = json.cafesData["cafebluedoor"].openSeats;
+		
+		CafesData["cafemilano"].totalSeats = json.cafesData["cafemilano"].totalSeats;
+		CafesData["cafemilano"].openSeats = json.cafesData["cafemilano"].openSeats;
+		
 		var userReservations = json.reservations;
 		if(LIST != null && (ReservationData.length != userReservations["valid"].length || userReservations["cancelled"].length > 0) ){
 			trace("list ready")
@@ -335,7 +345,9 @@ Handler.bind("/data", Behavior({
 	notifyAboutCancelledReservations(userReservations["cancelled"]);
 	cafeList["northsidecafe"].openSeatsLabel.string = CafesData["northsidecafe"].openSeats;
 	cafeList["yaliscafe"].openSeatsLabel.string = CafesData["yaliscafe"].openSeats;
-	
+	cafeList["caffestrada"].openSeatsLabel.string = CafesData["caffestrada"].openSeats;
+	cafeList["cafebluedoor"].openSeatsLabel.string = CafesData["cafebluedoor"].openSeats;
+	cafeList["cafemilano"].openSeatsLabel.string = CafesData["cafemilano"].openSeats;
 	handler.invoke( new Message( "/delay?duration=300" ) );
 }
 }));

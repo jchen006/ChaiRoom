@@ -3,6 +3,7 @@ var MODEL = require("mobile/model");
 var CONTROL = require("mobile/control");
 var TOOL = require('mobile/tool');
 var THEME = require('themes/sample/theme');
+var SCROLLER = require('mobile/scroller');
 
 var MINUTES_BEFORE_EXPIRED = 2; // CHANGE ME TO 0 FOR TESTING -- I SOULD BE 20
 // assets
@@ -34,15 +35,17 @@ var OCCUPIED = 'Occupied'
 var RESERVED = 'Reserved'
 
 // Styles
-var countStyle = new Style({ font:"25px Helvetica bold", color:"#30A8BE", horizontal:"right", vertical:"middle" });
-var listStyle = new Style({ font:"25px Helvetica Light", color:"#30A8BE", horizontal:"middle", vertical:"middle" });
+var countStyle = new Style({ font:"25px Helvetica Neue bold", color:"#30A8BE", horizontal:"right", vertical:"middle" });
+var listStyle = new Style({ font:"25px Helvetica Neue Light", color:"#30A8BE", horizontal:"middle", vertical:"middle" });
 
-var titleStyle = new Style({ font:"bold 30px", color:"#30A8BE", horizontal:"center", vertical:"middle" });
+var titleStyle = new Style({ font:"30px Helvetica Neue bold", color:"#30A8BE", horizontal:"center", vertical:"middle" });
+var smallerStyle = new Style({ font:"17px Helvetica Neue bold", color:"#30A8BE", horizontal:"center", vertical:"middle" });
 var centerStyle = new Style({ color:"#f2f5f1",horizontal:"center", vertical:"middle" });
 
-var openStyle = new Style({ font:"bold 30px",color:"white", horizontal:"center", vertical:"middle" });
-var occupiedStyle = new Style({font:"bold 30px", color:"white", horizontal:"center", vertical:"middle" });
-var reservedStyle = new Style({ font:"bold 30px",color:"white", horizontal:"center", vertical:"middle" });
+var openStyle = new Style({ font:"30px Helvetica Neue bold",color:"white", horizontal:"center", vertical:"middle" });
+var occupiedStyle = new Style({font:"0px Helvetica Neue bold", color:"white", horizontal:"center", vertical:"middle" });
+var reservedStyle = new Style({ font:"30px Helvetica Neue bold",color:"white", horizontal:"center", vertical:"middle" });
+
 var separatorSkin = new Skin({ fill: '#30A8BE',});
 var withBoarder = new Skin({ fill:"#ffffff",borders: {color: 'black', left:2, right:2, top:2, bottom:2 }, stroke: '#30A8BE',});
 // Handlers
@@ -116,7 +119,7 @@ var changeChairStatus = function(id,n, currStatus, newStatus, newStyle, newReser
 	}
 	return chairs
 }
-Handler.bind("/northside", {
+Handler.bind("/seats", {
 	onInvoke: function(handler, message) {
 		var data = message.requestObject;
 		newOpenSeats = data["chairs"].toFixed(0);
@@ -354,7 +357,7 @@ var CafeScreen = Container.template(function($) { return {
 		Line($, { left: 10, right: 10, height: 1.5, skin: separatorSkin, }),
 		Line($,{left:0,right:0, style: centerStyle, top:5,
 			contents: [
-			Picture($,{height:30,width:30,left:5, url: '../assets/home.png',aspect: 'fit', active: true, behavior: 
+			Picture($,{height:30,width:30,left:5, url: '../assets/blue-arrow.png',aspect: 'fit', active: true, behavior: 
 				Object.create(CONTROL.ButtonBehavior.prototype, {
 					onTap: { value: function(container) {
 						trace("clicked")
@@ -363,7 +366,7 @@ var CafeScreen = Container.template(function($) { return {
 					}},
 				})
 				}),
-			Label($, {left:80, style: listStyle,string :"Total Seats: " },),
+			Label($, {left:60, style: listStyle,string :"Total Seats: " },),
 			this.total = Label($, {left:10,  style: countStyle },),
 			]})
 		]})
@@ -642,11 +645,12 @@ var MainScreen = Container.template(function($) { return {
 	left:0, right:0, top:0, bottom:0,
 	skin: new Skin({ fill: "white" }),
 	contents: [
-		Column($,{ left:0,right:0,bottom:0, top:0,  
+	
+		Column($,{ left:0,right:0,bottom:0, top:0, anchor: 'LIST', 
 			contents: [
 			Line($,{  left:10,right:10, top:5,style: centerStyle,skin: withBoarder,
 				contents: [
-					Picture($,{height:100,width:150, url: '../assets/northside_logo.png',aspect: 'fit', 
+					Picture($,{height:70,width:140, url: '../assets/northside_logo.png',aspect: 'fit', 
 					active: true, skin: withBoarder, behavior: 
 						Object.create(CONTROL.ButtonBehavior.prototype, {
 							onTap: { value: function(container) {
@@ -657,8 +661,9 @@ var MainScreen = Container.template(function($) { return {
 							}},
 						})
 					}),
-					Column($, { height:100, width: 1, skin: withBoarder, }),
-					Picture($,{left:5,height:100,width:140, url: '../assets/yaliscafe_logo.png',aspect: 'fit', active: true, behavior: 
+					Column($, { height:60, width: 1, skin: withBoarder, }),
+					
+					Picture($,{left:5,height:70,width:140, url: '../assets/yaliscafe_logo.png',aspect: 'fit', active: true, behavior: 
 						Object.create(CONTROL.ButtonBehavior.prototype, {
 							onTap: { value: function(container) {
 								trace("clicked")
@@ -670,10 +675,52 @@ var MainScreen = Container.template(function($) { return {
 					}),
 					
 				]}),
+				Line($,{  left:10,right:10, top:5,style: centerStyle,skin: withBoarder,
+				contents: [
+					Picture($,{height:70,width:140, url: '../assets/strada_logo.png',aspect: 'fit', 
+					active: true, skin: withBoarder, behavior: 
+						Object.create(CONTROL.ButtonBehavior.prototype, {
+							onTap: { value: function(container) {
+								trace("clicked")
+								application.add(model.caffeStrada)
+								application.distribute("onModelChanged");
+								
+							}},
+						})
+					}),
+					Column($, { height:60, width: 1, skin: withBoarder, }),
+					
+					Label($,{left:5,height:70,width:140, string:"Cafe Blue Door", style: smallerStyle,  active: true, behavior: 
+						Object.create(CONTROL.ButtonBehavior.prototype, {
+							onTap: { value: function(container) {
+								trace("clicked")
+								application.add(model.cafeBlueDoor)
+								application.distribute("onModelChanged");
+								
+							}},
+						})
+					}),
+					
+				]}),
+				Line($,{  left:10,right:10, top:5,style: centerStyle,skin: withBoarder,
+				contents: [
+					Label($,{left:0,height:70,width:140, string:"Cafe Milano", style: smallerStyle,  active: true, behavior: 
+						Object.create(CONTROL.ButtonBehavior.prototype, {
+							onTap: { value: function(container) {
+								trace("clicked")
+								application.add(model.cafeMilano)
+								application.distribute("onModelChanged");
+								
+							}},
+						})
+					}),
+					Column($, { height:60, width: 1, skin: withBoarder, }),
+				]}),
 		
 			],
 
 }),
+
 ]
 }});
 
@@ -720,6 +767,45 @@ ApplicationBehavior.prototype =  Object.create(MODEL.ApplicationBehavior.prototy
 		this.data[cafeid].floor = this.yaliscafeFloor
 		this.yalisCafe = new CafeScreen(this.data[cafeid]);
 		
+		// caffe strada
+		cafeid = "caffestrada"
+	
+		this.caffestradaFloor = new CafeFloor({cafeName: "Caffe Strada"});
+			
+		this.caffestradaFloor.add(new RoundTable({right:20,top:25,cafeId: cafeid, name:"table1"}))
+		this.caffestradaFloor.add(new RoundTable({right:80,top:140,cafeId: cafeid, name:"table2"}))
+		this.caffestradaFloor.add(new RoundTable({right:210,top:150,cafeId: cafeid, name:"table3"}))
+		this.caffestradaFloor.add(new RoundTable({right:230,top:50,cafeId: cafeid, name:"table4"}))
+		this.data[cafeid].floor = this.caffestradaFloor
+		this.caffeStrada = new CafeScreen(this.data[cafeid]);
+		
+		// Cafe Blue Door
+		cafeid = "cafebluedoor"
+	
+		this.cafebluedoorFloor = new CafeFloor({cafeName: "Cafe Blue Door"});
+			
+		this.cafebluedoorFloor.add(new RecTable({right:20,top:60,cafeId: cafeid, name:"table1"}))
+		this.cafebluedoorFloor.add(new RoundTable({right:20,top:150,cafeId: cafeid, name:"table2"}))
+		this.cafebluedoorFloor.add(new RecTable({right:230,top:150,cafeId: cafeid, name:"table3"}))
+		this.cafebluedoorFloor.add(new RecTable({right:230,top:60,cafeId: cafeid, name:"table4"}))
+		this.cafebluedoorFloor.add(new RecTable({right:130,top:60,cafeId: cafeid, name:"table5"}))
+		this.cafebluedoorFloor.add(new RoundTable({right:120,top:150,cafeId: cafeid, name:"table6"}))
+		this.data[cafeid].floor = this.cafebluedoorFloor
+		this.cafeBlueDoor = new CafeScreen(this.data[cafeid]);
+		
+		// Cafe Milano
+		cafeid = "cafemilano"
+	
+		this.cafemilanoFloor = new CafeFloor({cafeName: "Cafe Milano"});
+			
+		this.cafemilanoFloor.add(new RecTable({right:20,top:60,cafeId: cafeid, name:"table1"}))
+		this.cafemilanoFloor.add(new RoundTable({right:20,top:150,cafeId: cafeid, name:"table2"}))
+		this.cafemilanoFloor.add(new RecTable({right:230,top:150,cafeId: cafeid, name:"table3"}))
+		this.cafemilanoFloor.add(new RecTable({right:230,top:60,cafeId: cafeid, name:"table4"}))
+		this.cafemilanoFloor.add(new RecTable({right:130,top:60,cafeId: cafeid, name:"table5"}))
+		this.data[cafeid].floor = this.cafemilanoFloor
+		this.cafeMilano = new CafeScreen(this.data[cafeid]);
+		
 		application.distribute("onModelChanged");
 		//
 	}},
@@ -746,11 +832,53 @@ ApplicationBehavior.prototype =  Object.create(MODEL.ApplicationBehavior.prototy
 				cafeName:"Yali's Cafe",
 				chairs:{}
 			},
+			"caffestrada":{
+				cafeId: "caffestrada",
+				openSeats: 0,
+				reservedSeats: 0,
+				occupiedSeats:0,
+				//reservationModel:{},
+				totalSeats: 16,
+				cafeName:"Caffe Strada",
+				chairs:{}
+			},
+			"cafebluedoor":{
+				cafeId: "cafebluedoor",
+				openSeats: 0,
+				reservedSeats: 0,
+				occupiedSeats:0,
+				//reservationModel:{},
+				totalSeats: 24,
+				cafeName:"Cafe Blue Door",
+				chairs:{}
+			},
+			"cafemilano":{
+				cafeId: "cafemilano",
+				openSeats: 0,
+				reservedSeats: 0,
+				occupiedSeats:0,
+				//reservationModel:{},
+				totalSeats: 20,
+				cafeName:"Cafe Milano",
+				chairs:{}
+			},
 			reservationModel:{},
 		};
 		var message = new MessageWithObject("pins:configure", {
-			northside: {
-				require: "northside_sensors",
+			cafemilano: {
+				require: "cafemilano_sensors",
+				pins: {
+					chairs: { pin: 62 }
+				}
+			},
+			cafebluedoor: {
+				require: "cafebluedoor_sensors",
+				pins: {
+					chairs: { pin: 62 }
+				}
+			},
+			caffestrada: {
+				require: "strada_sensors",
 				pins: {
 					chairs: { pin: 62 }
 				}
@@ -761,11 +889,20 @@ ApplicationBehavior.prototype =  Object.create(MODEL.ApplicationBehavior.prototy
 					chairs: { pin: 62 }
 				}
 			},
+			northside: {
+				require: "northside_sensors",
+				pins: {
+					chairs: { pin: 62 }
+				}
+			},
 		});
 		message.setRequestHeader("referrer", "xkpr://" + application.id);
 		application.invoke(message,Message.JSON);
-		application.invoke(new MessageWithObject("pins:/northside/read?repeat=on&callback=/northside&interval=250"));
-		application.invoke(new MessageWithObject("pins:/yaliscafe/read?repeat=on&callback=/northside&interval=250"));
+		application.invoke(new MessageWithObject("pins:/northside/read?repeat=on&callback=/seats&interval=250"));
+		application.invoke(new MessageWithObject("pins:/yaliscafe/read?repeat=on&callback=/seats&interval=250"));
+		application.invoke(new MessageWithObject("pins:/caffestrada/read?repeat=on&callback=/seats&interval=250"));
+		application.invoke(new MessageWithObject("pins:/cafebluedoor/read?repeat=on&callback=/seats&interval=250"));
+		application.invoke(new MessageWithObject("pins:/cafemilano/read?repeat=on&callback=/seats&interval=250"));
 	}},
 	onQuit: function(application) {
 		application.shared = false;
