@@ -33,15 +33,16 @@ var headerSkin = new Skin({ fill: '#aeacac',});
 var separatorSkin = new Skin({ fill: '#30A8BE',});
 var cafeInfoSkin = new Skin({ fill: '#30A8BE',});
 var footerSkin = new Skin({ fill: ['#30A8BE','white'],});
-var footerStyle = new Style({font: "14px Helvetica Neue", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
+var footerStyle = new Style({font: "14px Helvetica Neue light", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
 
-var headerText = new Style({font: "18px Helvetica Neue bold", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
-var buttonText = new Style({font: "22px Helvetica Neue bold", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
-var reserveButton = new Style({font: "25px Helvetica Neue bold", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
-var clockStyle = new Style({font: "25px Helvetica Neue bold", color:"#ffffff", horizontal: 'right', vertical: 'middle',});
-var listText = new Style({font: "22px Helvetica Neue", color:"#30A8BE",});
-var cafeInfoTextStyle = new Style({font: "20px Helvetica Neue", color:"black", horizontal: 'center', vertical: 'middle',});
-var cafeInfoLabelStyle = new Style({font: "22px Helvetica Neue bold", color:"#30A8BE", vertical: 'middle',});
+var headerText = new Style({font: "18px Helvetica Neue light", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
+var headerStyle = new Style({font: "25px Helvetica Neue light", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
+var buttonText = new Style({font: "22px Helvetica Neue light", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
+var reserveButton = new Style({font: "25px Helvetica Neue light", color:"#ffffff", horizontal: 'center', vertical: 'middle',});
+var clockStyle = new Style({font: "25px Helvetica Neue light", color:"#ffffff", horizontal: 'right', vertical: 'middle',});
+var listText = new Style({font: "22px Helvetica Neue light", color:"#30A8BE",});
+var cafeInfoTextStyle = new Style({font: "20px Helvetica Neue light", color:"black", horizontal: 'center', vertical: 'middle',});
+var cafeInfoLabelStyle = new Style({font: "22px Helvetica Neue light", color:"#30A8BE", vertical: 'middle',});
 
 var filterButtonStyle = new Style({  font: 'bold',color:'white' , horizontal: 'center', vertical: 'middle',});
 var alignRight = new Style({   horizontal: 'right', vertical: 'middle',});
@@ -49,10 +50,10 @@ var backgroundSkin = new Skin({ fill: 'white',});
 var listSkin = new Skin({ fill: ['white', '#acd473'], });
 var inputTextFieldSkin = new Skin({ fill:"#ffffff",borders: {color: 'black', left:2, right:2, top:2, bottom:2 }, stroke: '#30A8BE',});
 var buttonSkin = new Skin({ fill:"#30A8BE",borders: {color: 'black', left:1, right:1, top:1, bottom:1 }, stroke: 'gray',});
-var resTitleSkin = new Skin({ fill:"#30A8BE",borders: {color: 'black', left:2, right:2, top:2, bottom:2 }, stroke: 'black',});
-var fieldStyle = new Style({ color: 'black', font: '20px Helvetica Neue', horizontal: 'left' });
-var resTextStyle = new Style({ color: 'black', font: '22px Helvetica Neue', horizontal: 'center' });
-var fieldHintStyle = new Style({ color: 'black', font: '18px Helvetica Neue', horizontal: 'left', vertical: 'middle', left: 5, right: 5, top: 5, bottom: 5, });
+var resTitleSkin = new Skin({ fill:"#30A8BE",borders: {color: 'black', left:0, right:0, top:0, bottom:0 }, stroke: 'black',});
+var fieldStyle = new Style({ color: 'black', font: '20px Helvetica Neue light', horizontal: 'left' });
+var resTextStyle = new Style({ color: 'black', font: '22px Helvetica Neue light', horizontal: 'center' });
+var fieldHintStyle = new Style({ color: 'black', font: '18px Helvetica Neue light', horizontal: 'left', vertical: 'middle', left: 5, right: 5, top: 5, bottom: 5, });
 // Reservations
 ReservationData = []
 var duplicateReservations = function(id){
@@ -660,7 +661,7 @@ var CafeInfo = SCREEN.EmptyScreen.template(function($) {
 }),
 ]
 }),
-Header($, { anchor: 'HEADER', }),
+Header($, {style: headerStyle, anchor: 'HEADER', }),
 ]
 }});
 
@@ -784,7 +785,7 @@ Label($, { width: 280,height: 50,skin: cafeInfoSkin, string: "Reserve",style: re
 }),]
 }),]
 }),
-Header($, { anchor: 'HEADER', }),
+Header($, { style: headerStyle,anchor: 'HEADER', }),
 ]
 }});
 var getKeys = function(obj){
@@ -835,7 +836,7 @@ var reservation_line = Line.template(function($) {
 var Header = SCREEN.EmptyHeader.template(function($) { return { skin: headerSkin, 
 	contents: [
 	TOOL.BackButton($, { }),
-	TOOL.HeaderTitle($, { style: THEME.plainHeaderTitleStyle, }),
+	TOOL.HeaderTitle($, { style: headerStyle, }),
 	], }});
 
 /* Main Screen Template*/
@@ -843,7 +844,7 @@ var MainScreen = SCREEN.EmptyScreen.template(function($) { return {
 	contents: [
 	$.tabs[$.selection].Pane($.tabs[$.selection], { anchor: 'BODY', }),
 	SCREEN.TabFooter($, {style: footerStyle, skin: footerSkin,anchor: 'FOOTER', }),
-	$.tabs[$.selection].Header($.tabs[$.selection], { style: buttonText, anchor: 'HEADER', }),
+	$.tabs[$.selection].Header($.tabs[$.selection], { style: headerStyle, anchor: 'HEADER', }),
 	]
 }});
 
