@@ -46,7 +46,7 @@ var reservedStyle = new Style({ font:"bold 30px",color:"white", horizontal:"cent
 var separatorSkin = new Skin({ fill: '#30A8BE',});
 
 // Handlers
-var changeChairStatus1 = function(n, currStatus, newStatus, newStyle, newReservationName){
+var changeCancelledChairStatus = function(n, currStatus, newStatus, newStyle, newReservationName){
 	trace("changing status of: " + n + "chairs \n")
 	var cafe = model.data.chairs
 	var chairs = []
@@ -264,9 +264,9 @@ var checkExpiredReservations = function(r){
 	return {"cancelled":cancelled, "valid":valid };
 }
 var cancelReservation = function(reservation){
-	var cancelledSeats = changeChairStatus(reservation.numberOfSeats,RESERVED, OPEN,openStyle,"")
-	if (reservation.active == false) return
-		reservation.active = false;
+	var cancelledSeats = changeCancelledChairStatus(reservation.numberOfSeats,RESERVED, OPEN,openStyle,"")
+	if (reservation.active == false) {return}
+	reservation.active = false;
 	model.data.reservedSeats = parseInt(model.data.reservedSeats) - parseInt(reservation.numberOfSeats) ;
 	application.distribute("onModelChanged");
 }
