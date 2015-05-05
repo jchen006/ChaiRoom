@@ -44,11 +44,14 @@ var openStyle = new Style({ font:"bold 30px",color:"white", horizontal:"center",
 var occupiedStyle = new Style({font:"bold 30px", color:"white", horizontal:"center", vertical:"middle" });
 var reservedStyle = new Style({ font:"bold 30px",color:"white", horizontal:"center", vertical:"middle" });
 var separatorSkin = new Skin({ fill: '#30A8BE',});
-
+var withBoarder = new Skin({ fill:"#ffffff",borders: {color: 'black', left:2, right:2, top:2, bottom:2 }, stroke: '#30A8BE',});
 // Handlers
-var changeCancelledChairStatus = function(n, currStatus, newStatus, newStyle, newReservationName){
+var getId = function(name){
+	return name.replace(/[^a-z0-9\s]/gi, '').replace(/[_\s]/g, '').toLowerCase();
+}
+var changeCancelledChairStatus = function(id,n, currStatus, newStatus, newStyle, newReservationName){
 	trace("changing status of: " + n + "chairs \n")
-	var cafe = model.data.chairs
+	var cafe = model.data[id].chairs
 	var chairs = []
 	for (var table in cafe){
 		if(cafe.hasOwnProperty(table)){
@@ -65,9 +68,9 @@ var changeCancelledChairStatus = function(n, currStatus, newStatus, newStyle, ne
 	}
 	return chairs
 }
-var changeChairStatus = function(n, currStatus, newStatus, newStyle, newReservationName){
+var changeChairStatus = function(id,n, currStatus, newStatus, newStyle, newReservationName){
 	trace("changing status of: " + n + " chairs \n")
-	var cafe = model.data.chairs
+	var cafe = model.data[id].chairs
 	var chairs = []
 	var openChairs = {"best": [], "good": []}
 	for (var table in cafe){
@@ -113,28 +116,30 @@ var changeChairStatus = function(n, currStatus, newStatus, newStyle, newReservat
 	}
 	return chairs
 }
-Handler.bind("/seats", {
+Handler.bind("/northside", {
 	onInvoke: function(handler, message) {
 		var data = message.requestObject;
 		newOpenSeats = data["chairs"].toFixed(0);
-		var numberOfReservedSeats = model.data.reservedSeats;
-		var totalSeats = model.data.totalSeats;
-		var currNumberOfOpenSeats = parseInt(model.data.openSeats) + parseInt(model.data.reservedSeats)
+		var id = getId(data["cafeName"])
+		var northside = model.data[id]
+		var numberOfReservedSeats = northside.reservedSeats;
+		var totalSeats = northside.totalSeats;
+		var currNumberOfOpenSeats = parseInt(northside.openSeats) + parseInt(northside.reservedSeats)
 		var newOccupiedSeats =  totalSeats - (newOpenSeats)
 		var numberOfOpenSeats  =  (newOpenSeats - numberOfReservedSeats)
 		
 		if(numberOfOpenSeats < 0 || newOpenSeats == currNumberOfOpenSeats) return 0;
-		model.data.newOpenSeats = newOpenSeats;
-		model.data.cafeName = data["cafeName"];
-		model.data.openSeats = numberOfOpenSeats.toFixed(0);
+		northside.newOpenSeats = newOpenSeats;
+		northside.cafeName = data["cafeName"];
+		northside.openSeats = numberOfOpenSeats.toFixed(0);
 		// occupied new seats
-		var currOccupiedSeats = model.data.occupiedSeats
+		var currOccupiedSeats = northside.occupiedSeats
 		if(currOccupiedSeats < newOccupiedSeats)
-			changeChairStatus(newOccupiedSeats - currOccupiedSeats, OPEN,OCCUPIED, occupiedStyle,"")
+			changeChairStatus(id,newOccupiedSeats - currOccupiedSeats, OPEN,OCCUPIED, occupiedStyle,"")
 		else{
-			changeChairStatus( currOccupiedSeats - newOccupiedSeats,OCCUPIED, OPEN, openStyle,"")
+			changeChairStatus(id, currOccupiedSeats - newOccupiedSeats,OCCUPIED, OPEN, openStyle,"")
 		}
-		model.data.occupiedSeats = newOccupiedSeats.toFixed(0); 
+		northside.occupiedSeats = newOccupiedSeats.toFixed(0); 
 		application.distribute("onModelChanged");
 	}
 });
@@ -150,10 +155,11 @@ Handler.bind("/reserve", Object.create(Behavior.prototype, {
 			var name = query.cafeName;
 			var nameOfReservation = query.nameOfReservation
 			var numOfReservedSeats = query.numOfReservedSeats;
-			var reservedChairs = changeChairStatus(numOfReservedSeats,OPEN, RESERVED,reservedStyle,"By: " + nameOfReservation)
-			if (parseInt(numOfReservedSeats) < 0 ) return
-				model.data.openSeats = parseInt(model.data.openSeats) - parseInt(numOfReservedSeats)
-			model.data.reservedSeats = parseInt(model.data.reservedSeats) + parseInt(numOfReservedSeats);
+			var targetCafe = model.data[id]
+			var reservedChairs = changeChairStatus(id,numOfReservedSeats,OPEN, RESERVED,reservedStyle,"By: " + nameOfReservation)
+			if (parseInt(numOfReservedSeats) < 0 ) {return}
+			targetCafe.openSeats = parseInt(targetCafe.openSeats) - parseInt(numOfReservedSeats)
+			targetCafe.reservedSeats = parseInt(targetCafe.reservedSeats) + parseInt(numOfReservedSeats);
 			
 			var new_reservation = {name: nameOfReservation,cafeId: id,cafeName:name, time:new Date(),numberOfSeats: numOfReservedSeats, seats: reservedChairs, active: true};
 			var reservationModel = model.data.reservationModel;
@@ -175,6 +181,7 @@ Handler.bind("/cancel", Object.create(Behavior.prototype, {
 			var user_id = query.user_id;
 			var id = query.cafeId;
 			var nameOfReservation = query.nameOfReservation
+			var trgetCafe = model.data[id]
 			var reservationModel = model.data.reservationModel;
 			var reservations =reservationModel[user_id]
 			for(var i in reservations){
@@ -201,12 +208,13 @@ Handler.bind("/locateSeats", Object.create(Behavior.prototype, {
 			var user_id = query.user_id;
 			var id = query.cafeId;
 			var n = query.n
+			var targetCafe = model.data[id]
 			if (n == 0) return
 				var nameOfReservation = query.nameOfReservation
 			var reservationModel = model.data.reservationModel;
 			var reservations =reservationModel[user_id]
 			var seats 
-			var cafe = model.data.chairs
+			var cafe = targetCafe.chairs
 			for(var i in reservations){
 				if(reservations[i].cafeId === id && reservations[i].name === nameOfReservation && reservations[i].active){
 					seats = reservations[i].seats
@@ -264,10 +272,11 @@ var checkExpiredReservations = function(r){
 	return {"cancelled":cancelled, "valid":valid };
 }
 var cancelReservation = function(reservation){
-	var cancelledSeats = changeCancelledChairStatus(reservation.numberOfSeats,RESERVED, OPEN,openStyle,"")
+	var cancelledSeats = changeCancelledChairStatus(reservation.cafeId,reservation.numberOfSeats,RESERVED, OPEN,openStyle,"")
 	if (reservation.active == false) {return}
 	reservation.active = false;
-	model.data.reservedSeats = parseInt(model.data.reservedSeats) - parseInt(reservation.numberOfSeats) ;
+	var targetCafe = model.data[reservation.cafeId]
+	targetCafe.reservedSeats = parseInt(targetCafe.reservedSeats) - parseInt(reservation.numberOfSeats) ;
 	application.distribute("onModelChanged");
 }
 // params
@@ -280,7 +289,7 @@ Handler.bind("/data", {
 		if(model.data.reservationModel.hasOwnProperty(user_id)){
 			userReservations =  checkExpiredReservations(model.data.reservationModel[user_id])
 		}
-		var data = {reservations: userReservations, totalSeats: model.data.totalSeats,openSeats: model.data.openSeats };
+		var data = {reservations: userReservations, cafesData: model.data };
 		message.responseText = JSON.stringify( data );
 		message.status = 200;
 	}
@@ -300,7 +309,7 @@ Handler.bind("/myReservations", {
 });
 // layouts
 var iconSize = 45
-var MainScreen = Container.template(function($) { return {
+var CafeScreen = Container.template(function($) { return {
 	left:0, right:0, top:0, bottom:0,
 	skin: new Skin({ fill: "white" }),
 	contents: [
@@ -312,7 +321,7 @@ var MainScreen = Container.template(function($) { return {
 				Object.create(CONTROL.ButtonBehavior.prototype, {
 					onTap: { value: function(container) {
 						trace("clicked")
-						application.add(model.cafeFloor)
+						application.add(this.data.floor)
 						application.distribute("onModelChanged");
 						
 					}},
@@ -345,19 +354,33 @@ var MainScreen = Container.template(function($) { return {
 		Line($, { left: 10, right: 10, height: 1.5, skin: separatorSkin, }),
 		Line($,{left:0,right:0, style: centerStyle, top:5,
 			contents: [
+			Picture($,{height:30,width:30,left:5, url: '../assets/home.png',aspect: 'fit', active: true, behavior: 
+				Object.create(CONTROL.ButtonBehavior.prototype, {
+					onTap: { value: function(container) {
+						trace("clicked")
+						application.remove(application.last)
+						
+					}},
+				})
+				}),
 			Label($, {left:80, style: listStyle,string :"Total Seats: " },),
-			this.total = Label($, {left:40,  style: countStyle },),
+			this.total = Label($, {left:10,  style: countStyle },),
 			]})
 		]})
 ],
 behavior: Object.create(Behavior.prototype, {
+		onCreate: { value: function(container, data) {
+			this.data = data
+			
+		}},
 	onModelChanged: { value: function(container) {
-		container.available.string  =   String(model.data.openSeats) ;
-		container.reserved.string  =  String(model.data.reservedSeats) ;
-		container.occupied.string  =   String(model.data.occupiedSeats) ;
-		var total = parseInt(model.data.occupiedSeats) + parseInt(model.data.reservedSeats) + parseInt(model.data.openSeats) ;
+		var targetCafe = model.data[$.cafeId]
+		container.available.string  =   String(targetCafe.openSeats) ;
+		container.reserved.string  =  String(targetCafe.reservedSeats) ;
+		container.occupied.string  =   String(targetCafe.occupiedSeats) ;
+		var total = parseInt(targetCafe.occupiedSeats) + parseInt(targetCafe.reservedSeats) + parseInt(targetCafe.openSeats) ;
 		container.total.string  =  String(total);
-		container.cafeName.string  = model.data.cafeName;
+		container.cafeName.string  = targetCafe.cafeName;
 	}},
 }),
 }});
@@ -373,7 +396,8 @@ var CafeFloor =  Container.template(function($) { return {
 					application.remove(application.last)
 					
 				}},})
-		})
+		}),
+		Label($, {left:10, style: titleStyle,string: $.cafeName},),
 		]})
 	]
 }})
@@ -401,7 +425,7 @@ var RoundTable  = Container.template(function($) { return {
 			onTap: { value: function(container) {
 				
 				var tableName = container.container.name
-				var table = model.data.chairs[tableName]
+				var table = this.data.targetCafe.chairs[tableName]
 				var chair = table.chair1
 				application.add(new ChairDetail({style: chair.style,status: chair.status, reservationName: chair.reservationName}))
 				
@@ -412,7 +436,7 @@ var RoundTable  = Container.template(function($) { return {
 			onTap: { value: function(container) {
 				
 				var tableName = container.container.name
-				var table = model.data.chairs[tableName]
+				var table = this.data.targetCafe.chairs[tableName]
 				var chair = table.chair2
 				application.add(new ChairDetail({style: chair.style,status: chair.status, reservationName: chair.reservationName}))
 				
@@ -423,7 +447,7 @@ var RoundTable  = Container.template(function($) { return {
 			onTap: { value: function(container) {
 				
 				var tableName = container.container.name
-				var table = model.data.chairs[tableName]
+				var table = this.data.targetCafe.chairs[tableName]
 				var chair = table.chair3
 				application.add(new ChairDetail({style: chair.style,status: chair.status, reservationName: chair.reservationName}))
 				
@@ -433,7 +457,7 @@ var RoundTable  = Container.template(function($) { return {
 			onTap: { value: function(container) {
 				
 				var tableName = container.container.name
-				var table = model.data.chairs[tableName]
+				var table = this.data.targetCafe.chairs[tableName]
 				var chair = table.chair4
 				application.add(new ChairDetail({style: chair.style,status: chair.status, reservationName: chair.reservationName}))
 			}},})})
@@ -442,8 +466,9 @@ var RoundTable  = Container.template(function($) { return {
 	behavior: Object.create(Behavior.prototype, {
 		onCreate: { value: function(container, data) {
 			this.data = data;
-			if(!model.data.chairs.hasOwnProperty(container.name)){
-				model.data.chairs[container.name] = {chair1:{name:"chair1",table:container.name,status: OPEN,orientation:'v', style: openStyle,reservationName:''},
+			this.data.targetCafe =  model.data[this.data.cafeId]
+			if(!this.data.targetCafe.chairs.hasOwnProperty(container.name)){
+				this.data.targetCafe.chairs[container.name] = {chair1:{name:"chair1",table:container.name,status: OPEN,orientation:'v', style: openStyle,reservationName:''},
 				chair2:{name:"chair2",table:container.name,status: OPEN,orientation:'v', style: openStyle,reservationName:''},
 				chair3:{name:"chair3",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''},
 				chair4:{name:"chair4",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''}}
@@ -457,7 +482,7 @@ var RoundTable  = Container.template(function($) { return {
 			var chair4 = chair3.next
 			
 			var tableName = container.name
-			var table = model.data.chairs[tableName]
+			var table = this.data.targetCafe.chairs[tableName]
 			
 			chair1URL = chairIcon(table.chair1.status,table.chair1.orientation)
 			chair2URL = chairIcon(table.chair2.status,table.chair2.orientation)
@@ -501,7 +526,7 @@ var RecTable  = Container.template(function($) { return {
 			onTap: { value: function(container) {
 				
 				var tableName = container.container.name
-				var table = model.data.chairs[tableName]
+				var table = this.data.targetCafe.chairs[tableName]
 				var chair = table.chair1
 				application.add(new ChairDetail({style: chair.style,status: chair.status, reservationName: chair.reservationName}))
 				
@@ -512,7 +537,7 @@ var RecTable  = Container.template(function($) { return {
 			onTap: { value: function(container) {
 				
 				var tableName = container.container.name
-				var table = model.data.chairs[tableName]
+				var table = this.data.targetCafe.chairs[tableName]
 				var chair = table.chair2
 				application.add(new ChairDetail({style: chair.style,status: chair.status, reservationName: chair.reservationName}))
 				
@@ -523,7 +548,7 @@ var RecTable  = Container.template(function($) { return {
 			onTap: { value: function(container) {
 				
 				var tableName = container.container.name
-				var table = model.data.chairs[tableName]
+				var table = this.data.targetCafe.chairs[tableName]
 				var chair = table.chair3
 				application.add(new ChairDetail({style: chair.style,status: chair.status, reservationName: chair.reservationName}))
 				
@@ -533,7 +558,7 @@ var RecTable  = Container.template(function($) { return {
 			onTap: { value: function(container) {
 				
 				var tableName = container.container.name
-				var table = model.data.chairs[tableName]
+				var table = this.data.targetCafe.chairs[tableName]
 				var chair = table.chair4
 				application.add(new ChairDetail({style: chair.style,status: chair.status, reservationName: chair.reservationName}))
 			}},})})
@@ -542,8 +567,9 @@ var RecTable  = Container.template(function($) { return {
 	behavior: Object.create(Behavior.prototype, {
 		onCreate: { value: function(container, data) {
 			this.data = data;
-			if(!model.data.chairs.hasOwnProperty(container.name)){
-				model.data.chairs[container.name] = {chair1:{name:"chair1",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''},
+			this.data.targetCafe =  model.data[this.data.cafeId]
+			if(!this.data.targetCafe.chairs.hasOwnProperty(container.name)){
+				this.data.targetCafe.chairs[container.name] = {chair1:{name:"chair1",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''},
 				chair2:{name:"chair2",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''},
 				chair3:{name:"chair3",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''},
 				chair4:{name:"chair4",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''}}
@@ -557,7 +583,7 @@ var RecTable  = Container.template(function($) { return {
 			var chair4 = chair3.next
 			
 			var tableName = container.name
-			var table = model.data.chairs[tableName]
+			var table = this.data.targetCafe.chairs[tableName]
 			
 			chair1URL = chairIcon(table.chair1.status,table.chair1.orientation)
 			chair2URL = chairIcon(table.chair2.status,table.chair2.orientation)
@@ -612,6 +638,44 @@ var ChairDetail  = Container.template(function($) { return {
 	]
 }})	
 
+var MainScreen = Container.template(function($) { return {
+	left:0, right:0, top:0, bottom:0,
+	skin: new Skin({ fill: "white" }),
+	contents: [
+		Column($,{ left:0,right:0,bottom:0, top:0,  
+			contents: [
+			Line($,{  left:10,right:10, top:5,style: centerStyle,skin: withBoarder,
+				contents: [
+					Picture($,{height:100,width:150, url: '../assets/northside_logo.png',aspect: 'fit', 
+					active: true, skin: withBoarder, behavior: 
+						Object.create(CONTROL.ButtonBehavior.prototype, {
+							onTap: { value: function(container) {
+								trace("clicked")
+								application.add(model.northsideCafe)
+								application.distribute("onModelChanged");
+								
+							}},
+						})
+					}),
+					Column($, { height:100, width: 1, skin: withBoarder, }),
+					Picture($,{left:5,height:100,width:140, url: '../assets/yaliscafe_logo.png',aspect: 'fit', active: true, behavior: 
+						Object.create(CONTROL.ButtonBehavior.prototype, {
+							onTap: { value: function(container) {
+								trace("clicked")
+								application.add(model.yalisCafe)
+								application.distribute("onModelChanged");
+								
+							}},
+						})
+					}),
+					
+				]}),
+		
+			],
+
+}),
+]
+}});
 
 
 // model
@@ -627,35 +691,72 @@ ApplicationBehavior.prototype =  Object.create(MODEL.ApplicationBehavior.prototy
 			application.add(new Label({ left:0, right:0, top:0, bottom:0, style: style, string:"Error " + message.error }));
 			return;
 		}
-		this.mainScreen = new MainScreen(this.data);
-		application.add(this.mainScreen);
+		var mainScreen  = new MainScreen()
+		application.add(mainScreen);
+		// Northside
+		var cafeid = "northsidecafe"
+
+		this.northsideCafeFloor = new CafeFloor({cafeName: "Northside Cafe"});
+		var table1 = new RoundTable({right:20,top:45,cafeId: cafeid, name:"table1"})
 		
-		this.cafeFloor = new CafeFloor();
-		var table1 = new RoundTable({right:20,top:25, name:"table1"})
+		this.northsideCafeFloor.add(table1)
+		this.northsideCafeFloor.add(new RoundTable({right:20,top:140,cafeId: cafeid, name:"table2"}))
+		this.northsideCafeFloor.add(new RoundTable({right:130,top:150,cafeId: cafeid, name:"table3"}))
 		
-		this.cafeFloor.add(table1)
-		this.cafeFloor.add(new RoundTable({right:20,top:140, name:"table2"}))
-		this.cafeFloor.add(new RoundTable({right:130,top:150, name:"table3"}))
+		this.northsideCafeFloor.add(new RecTable({right:240,top:70,cafeId: cafeid, name:"table4"}))
+		this.northsideCafeFloor.add(new RecTable({right:240,top:140,cafeId: cafeid, name:"table5"}))
+		this.data[cafeid].floor = this.northsideCafeFloor
+		this.northsideCafe = new CafeScreen(this.data[cafeid]);
 		
-		this.cafeFloor.add(new RecTable({right:240,top:70, name:"table4"}))
-		this.cafeFloor.add(new RecTable({right:240,top:140, name:"table5"}))
+		//Yali's Cafe
+		cafeid = "yaliscafe"
+	
+		this.yaliscafeFloor = new CafeFloor({cafeName: "Yali's Cafe"});
+			
+		this.yaliscafeFloor.add(new RoundTable({right:20,top:25,cafeId: cafeid, name:"table1"}))
+		this.yaliscafeFloor.add(new RoundTable({right:80,top:140,cafeId: cafeid, name:"table2"}))
+		this.yaliscafeFloor.add(new RoundTable({right:210,top:150,cafeId: cafeid, name:"table3"}))
+		this.yaliscafeFloor.add(new RecTable({right:230,top:70,cafeId: cafeid, name:"table4"}))
+		this.data[cafeid].floor = this.yaliscafeFloor
+		this.yalisCafe = new CafeScreen(this.data[cafeid]);
+		
 		application.distribute("onModelChanged");
 		//
 	}},
 	onLaunch: { value: function(application) {
 		application.shared = true;
 		var data = this.data = {
-			openSeats: 0,
-			reservedSeats: 0,
-			occupiedSeats:0,
+			"northsidecafe":{
+				cafeId: "northsidecafe",
+				openSeats: 0,
+				reservedSeats: 0,
+				occupiedSeats:0,
+				
+				totalSeats: 20,
+				cafeName:"NORTHSIDE CAFE",
+				chairs:{}
+			},
+			"yaliscafe":{
+				cafeId: "yaliscafe",
+				openSeats: 0,
+				reservedSeats: 0,
+				occupiedSeats:0,
+				//reservationModel:{},
+				totalSeats: 16,
+				cafeName:"Yali's Cafe",
+				chairs:{}
+			},
 			reservationModel:{},
-			totalSeats: 20,
-			cafeName:"NORTHSIDE CAFE",
-			chairs:{}
 		};
 		var message = new MessageWithObject("pins:configure", {
-			chairs: {
-				require: "seat_sensor",
+			northside: {
+				require: "northside_sensors",
+				pins: {
+					chairs: { pin: 62 }
+				}
+			},
+			yaliscafe: {
+				require: "yaliscafe_sensors",
 				pins: {
 					chairs: { pin: 62 }
 				}
@@ -663,7 +764,8 @@ ApplicationBehavior.prototype =  Object.create(MODEL.ApplicationBehavior.prototy
 		});
 		message.setRequestHeader("referrer", "xkpr://" + application.id);
 		application.invoke(message,Message.JSON);
-		application.invoke(new MessageWithObject("pins:/chairs/read?repeat=on&callback=/seats&interval=250"));
+		application.invoke(new MessageWithObject("pins:/northside/read?repeat=on&callback=/northside&interval=250"));
+		application.invoke(new MessageWithObject("pins:/yaliscafe/read?repeat=on&callback=/northside&interval=250"));
 	}},
 	onQuit: function(application) {
 		application.shared = false;
