@@ -53,6 +53,16 @@ var resTextStyle = new Style({ color: 'black', font: '22px Helvetica', horizonta
 var fieldHintStyle = new Style({ color: 'black', font: '18px', horizontal: 'left', vertical: 'middle', left: 5, right: 5, top: 5, bottom: 5, });
 // Reservations
 ReservationData = []
+var duplicateReservations = function(id){
+	
+	if(ReservationData.length == 0)return false
+	for(var i in ReservationData){
+		if(ReservationData[i].cafeId == id){
+		return true
+		}
+		return false
+	}
+}
 //Cafe Data 
 CafesData =  {
 	"northsidecafe":{
@@ -171,7 +181,7 @@ Handler.bind("/main",
 					{
 						Header: Header,
 						Pane: myChairsPane,
-					    items: null,
+						items: null,
 						more: false,
 						scroll: {x: 0, y:0},
 						selection: -1,
@@ -186,7 +196,7 @@ Handler.bind("/main",
 						scroll: {x: 0, y:0},
 						selection: -1,
 						variant: 0,
-						title: "MapView",
+						title: "Map View",
 					},
 					]
 				};
@@ -300,28 +310,28 @@ Handler.bind("/data", Behavior({
 	onComplete: function(handler,message,json){
 		if(json == null) return
 			CafesData["northsidecafe"].totalSeats = json.totalSeats;
-			CafesData["northsidecafe"].openSeats = json.openSeats;
-			var userReservations = json.reservations;
-			if(LIST != null && (ReservationData.length != userReservations["valid"].length || userReservations["cancelled"].length > 0) ){
-					trace("list ready")
-					LIST.behavior.reload(LIST)
-				}
-			ReservationData = userReservations["valid"];
-			
-			var notifyAboutCancelledReservations = function(cancelled){
+		CafesData["northsidecafe"].openSeats = json.openSeats;
+		var userReservations = json.reservations;
+		if(LIST != null && (ReservationData.length != userReservations["valid"].length || userReservations["cancelled"].length > 0) ){
+			trace("list ready")
+			LIST.behavior.reload(LIST)
+		}
+		ReservationData = userReservations["valid"];
+		
+		var notifyAboutCancelledReservations = function(cancelled){
 			for (var i in cancelled){
 				var c = cancelled[i];
 				var msg = "?title=Reservation Status&msg=Your " + c.numberOfSeats + " seats reservation at " + c.cafeName + " got expired! If you haven't arrived, you can make another reservation." 
 				handler.invoke(new Message("/failed" + msg))
 				if(LIST != null) LIST.behavior.reload(LIST)
 			}
-		}
-		notifyAboutCancelledReservations(userReservations["cancelled"]);
-		cafeList["northsidecafe"].openSeatsLabel.string = CafesData["northsidecafe"].openSeats;
-		trace(getKeys(model.data))
-				
-		handler.invoke( new Message( "/delay?duration=300" ) );
 	}
+	notifyAboutCancelledReservations(userReservations["cancelled"]);
+	cafeList["northsidecafe"].openSeatsLabel.string = CafesData["northsidecafe"].openSeats;
+	trace(getKeys(model.data))
+	
+	handler.invoke( new Message( "/delay?duration=300" ) );
+}
 }));
 Handler.bind("/delay", Object.create(Behavior.prototype, {
 	onInvoke: { value:
@@ -448,87 +458,87 @@ var mapPane = SCREEN.EmptyBody.template(function($) { return {left:0,right:0,top
 // myChairs tab
 var getLeftMinutes = function(reservationTime){	
 
-				var now = new Date();
-				var time  = new Date(reservationTime)
-				trace(time + "Xxxx"+  reservationTime)
-					var diff = parseInt(now.getTime()) - parseInt(time.getTime());
-					var minutes = Math.round(parseInt(diff)/60000);
-					trace(minutes)
-					return String(minutes)
+	var now = new Date();
+	var time  = new Date(reservationTime)
+	trace(time + "Xxxx"+  reservationTime)
+	var diff = parseInt(now.getTime()) - parseInt(time.getTime());
+	var minutes = Math.round(parseInt(diff)/60000);
+	trace(minutes)
+	return String(minutes)
 }
 var ReservationItemLine = Line.template(function($) { 
 	return {  name: id($.name),left: 0, right: 0, active: true, 
 		behavior: Object.create((SCREEN.ListItemBehavior).prototype), 
 		contents: [
 		Column($, { top:5,left: 0, right: 0, contents: [
-		Line($, { top:5,left: 0, right: 0, height: 62,skin: resTitleSkin,
-							contents: [
-								Label($,{left:5,style: reserveButton, string :$.cafeName}),
-								Picture($,{left:35,height:30,width:30, url: './assets/clock-white.png',aspect:'fit'}),
-								Label($,{left:2,style: reserveButton, string : new Date().getHours() + ":" +  new Date().getMinutes()}),
-							], }),
-		Line($, { top:5,left: 0, right: 0, 
+			Line($, { top:5,left: 0, right: 0, height: 62,skin: resTitleSkin,
 				contents: [
-					Picture($,{height:50,width:50,left:5, url: './assets/chair-button.png',aspect: 'fit', active: true, behavior: 
-						Object.create(CONTROL.ButtonBehavior.prototype, {
-							onTap: { value: function(container) {
-								trace("show me my chairs")
-								var params = "?user_id=" +user_id +"&nameOfReservation="+ ($.name).replace(/[_\s]/g, '%20') + "&cafeId="+ $.cafeId + "&n=" + N ;
-										application.invoke(new Message(deviceURL +"locateSeats" + params), Message.JSON);
-								
-							}},
-					}),}),
-					Column($, { top:5,left: 20, right: 0, contents: [
-						
-							Line($, { top:5,left: 0, right: 0, 
-							contents: [
-								Picture($,{left:0,height:40,width:40, url: './assets/note.png',aspect:'fit'}),
-								Label($,{left:20,style: resTextStyle, string : $.name}),
-							], }),
-							Line($, { top:5,left: 0, right: 0,
-							contents: [
-								Picture($,{left:0,height:40,width:40, url: './assets/chair-blue.png',aspect:'fit'}),
-								Label($,{left:20,style: resTextStyle, string : $.numberOfSeats + " Reserved"}),
-							], }),
-							Line($, { top:5,left: 0, right: 0,
-							contents: [
-								Picture($,{left:0,height:40,width:40, url: './assets/clock-blue.png',aspect:'fit'}),
-								Label($,{left:20,style: resTextStyle, string: $.remainTime +" Minutes left" }),
-							], }),
+				Label($,{left:5,style: reserveButton, string :$.cafeName}),
+				Picture($,{left:35,height:30,width:30, url: './assets/clock-white.png',aspect:'fit'}),
+				Label($,{left:2,style: reserveButton, string : new Date().getHours() + ":" +  new Date().getMinutes()}),
+				], }),
+			Line($, { top:5,left: 0, right: 0, 
+				contents: [
+				Picture($,{height:50,width:50,left:5, url: './assets/chair-button.png',aspect: 'fit', active: true, behavior: 
+					Object.create(CONTROL.ButtonBehavior.prototype, {
+						onTap: { value: function(container) {
+							trace("show me my chairs")
+							var params = "?user_id=" +user_id +"&nameOfReservation="+ ($.name).replace(/[_\s]/g, '%20') + "&cafeId="+ $.cafeId + "&n=" + N ;
+							application.invoke(new Message(deviceURL +"locateSeats" + params), Message.JSON);
 							
-								]}),
+						}},
+					}),}),
+				Column($, { top:5,left: 20, right: 0, contents: [
+					
+					Line($, { top:5,left: 0, right: 0, 
+						contents: [
+						Picture($,{left:0,height:40,width:40, url: './assets/note.png',aspect:'fit'}),
+						Label($,{left:20,style: resTextStyle, string : $.name}),
+						], }),
+					Line($, { top:5,left: 0, right: 0,
+						contents: [
+						Picture($,{left:0,height:40,width:40, url: './assets/chair-blue.png',aspect:'fit'}),
+						Label($,{left:20,style: resTextStyle, string : $.numberOfSeats + " Reserved"}),
+						], }),
+					Line($, { top:5,left: 0, right: 0,
+						contents: [
+						Picture($,{left:0,height:40,width:40, url: './assets/clock-blue.png',aspect:'fit'}),
+						Label($,{left:20,style: resTextStyle, string: $.remainTime +" Minutes left" }),
+						], }),
+					
 					]}),
-					Container($, {  height: 50, width:280,top:10, skin: inputTextFieldSkin, active: true, 
-									behavior: Object.create(CONTROL.ButtonBehavior.prototype, {
-										onTap: { value: function(container) {
-										 trace("cancel")
-										 var msg = "?msg= Your reservation has been cancelled &title=Success"
-										container.invoke(new Message("/success" + msg));
-										var params = "?user_id=" +user_id +"&nameOfReservation="+ ($.name).replace(/[_\s]/g, '%20') + "&cafeId="+ $.cafeId ;
-										application.invoke(new Message(deviceURL +"cancel" + params), Message.JSON);
-										var list = $.list
-										list.behavior.reload(list)
-																
-										}},
-									}),
-									contents: [
-									Label($, { width: 280,height: 50,skin: cafeInfoSkin, string: "Cancel Reservation",style: buttonText}),
-									],
-								}),
-			Line($, { top:5,left: 10, right: 10, height: 1.5, skin: separatorSkin, }),
-			], }),
-		],
-	}
+				]}),
+Container($, {  height: 50, width:280,top:10, skin: inputTextFieldSkin, active: true, 
+	behavior: Object.create(CONTROL.ButtonBehavior.prototype, {
+		onTap: { value: function(container) {
+			trace("cancel")
+			var msg = "?msg= Your reservation has been cancelled &title=Success"
+			container.invoke(new Message("/success" + msg));
+			var params = "?user_id=" +user_id +"&nameOfReservation="+ ($.name).replace(/[_\s]/g, '%20') + "&cafeId="+ $.cafeId ;
+			application.invoke(new Message(deviceURL +"cancel" + params), Message.JSON);
+			var list = $.list
+			list.behavior.reload(list)
+			
+		}},
+	}),
+	contents: [
+	Label($, { width: 280,height: 50,skin: cafeInfoSkin, string: "Cancel Reservation",style: buttonText}),
+	],
+}),
+Line($, { top:5,left: 10, right: 10, height: 1.5, skin: separatorSkin, }),
+], }),
+],
+}
 });
 
 var myChairsPane = Body.template(function($) {
- return {skin: backgroundSkin,left:0,right:0,top:40,bottom:50,
- contents: [
-	SCROLLER.VerticalScroller($, { contents: [
-		this.list = Column($, { left: 0, right: 0, top: 0, anchor: 'LIST', behavior: Object.create((myChairsPane.behaviors[0]).prototype), }),
-		SCROLLER.VerticalScrollbar($, { }),
-	], }),
-	]}})
+	return {skin: backgroundSkin,left:0,right:0,top:40,bottom:50,
+		contents: [
+		SCROLLER.VerticalScroller($, { contents: [
+			this.list = Column($, { left: 0, right: 0, top: 0, anchor: 'LIST', behavior: Object.create((myChairsPane.behaviors[0]).prototype), }),
+			SCROLLER.VerticalScrollbar($, { }),
+			], }),
+		]}})
 LIST = null
 myChairsPane.behaviors = new Array(1);
 myChairsPane.behaviors[0] = SCREEN.ListBehavior.template({
@@ -539,24 +549,18 @@ myChairsPane.behaviors[0] = SCREEN.ListBehavior.template({
 		
 	},
 	addEmptyLine: function(list) {
-			list.add(new Label({top:20,string: "No Reservations", style: listText}));
+		list.add(new Label({top:20,string: "No Reservations", style: listText}));
 	},
 	createMessage: function(list, data) {
-	trace("createMessage")
 		return new Message(deviceURL +"myReservations" + "?user_id=" +user_id);
 	},
 	getItems: function(list, message, json) {
-	trace("getItems")
-		if(json.length > 0){
-			trace(getKeys(json[0]))
-		}
 		return ReservationData;
 	},
 	load: function(list, more) {
-			trace("load")
-			LIST = list
-			SCREEN.ListBehavior.prototype.load.call( this, list, more );
-			list.adjust();						
+		LIST = list
+		SCREEN.ListBehavior.prototype.load.call( this, list, more );
+		list.adjust();						
 	}
 })
 
@@ -571,7 +575,6 @@ var CafeInfo = SCREEN.EmptyScreen.template(function($) {
 		}),
 		contents: [
 		SCREEN.EmptyBody($, { skin: new Skin({fill:"#f5f3f3"}), anchor: 'BODY', 
-			
 			contents: [
 			Scroller($, { 
 				contents: [
@@ -624,7 +627,6 @@ var CafeInfo = SCREEN.EmptyScreen.template(function($) {
 						behavior: Object.create(CONTROL.ButtonBehavior.prototype, {
 							onTap: { value: function(container) {
 								application.invoke( new Message( "/reservation?title=" + $.title) );
-								//application.add(new ReservationScreen($))
 							}},
 						}),
 						contents: [
@@ -648,7 +650,6 @@ var ReservationScreen = SCREEN.EmptyScreen.template(function($) {
 		behavior: Object.create(Behavior.prototype, {
 			onCreate: { value: function(container, data) {
 				this.data = data;
-				//this.data.leavingIn = 0
 			}}
 		}),
 		contents: [
@@ -665,146 +666,148 @@ var ReservationScreen = SCREEN.EmptyScreen.template(function($) {
 						}},
 					}),
 					contents:[
-						//this.numberOfReservedSeats = new reservation_line({data:this.data,name:"numberOfReservedSeats",url: './assets/chair-blue.png', hint: "How many chairs..."}),
-						Line($, {left:0,right:0,top:25,  
+					Line($, {left:0,right:0,top:25,  
 							contents:[
-								Picture($,{height:60,width:60,left:5, url: './assets/chair-blue.png',aspect:'fit'}),
-								Container ($, { 
-									name:"nameField",width: 220, height: 50,left:5, skin: inputTextFieldSkin, 
-									contents: [
-									Scroller($, { 
-										left: 4, right: 4, top: 4, bottom: 4, active: true,name:"scroller",
-										behavior: Object.create(CONTROL.FieldScrollerBehavior.prototype), clip: true, contents: [
-										this.field= Label($, { width: 60,height: 40,left: 0, top: 0, bottom: 0,  skin: THEME.fieldLabelSkin, style: fieldStyle, 
-											editable: true,active: true, name:"numOfReservedSeats",
-											behavior: Object.create( CONTROL.FieldLabelBehavior.prototype, {
-												onEdited: { value: function(label){
-													this.data.numOfReservedSeats = label.string;
-													label.container.hint.visible = ( this.data.numOfReservedSeats.length == 0 );	
-												}},
-												
-											}),
+							Picture($,{height:60,width:60,left:5, url: './assets/chair-blue.png',aspect:'fit'}),
+							Container ($, { 
+								name:"nameField",width: 220, height: 50,left:5, skin: inputTextFieldSkin, 
+								contents: [
+								Scroller($, { 
+									left: 4, right: 4, top: 4, bottom: 4, active: true,name:"scroller",
+									behavior: Object.create(CONTROL.FieldScrollerBehavior.prototype), clip: true, contents: [
+									this.field= Label($, { width: 60,height: 40,left: 0, top: 0, bottom: 0,  skin: THEME.fieldLabelSkin, style: fieldStyle, 
+										editable: true,active: true, name:"numOfReservedSeats",
+										behavior: Object.create( CONTROL.FieldLabelBehavior.prototype, {
+											onEdited: { value: function(label){
+												this.data.numOfReservedSeats = label.string;
+												label.container.hint.visible = ( this.data.numOfReservedSeats.length == 0 );	
+											}},
+											
 										}),
-										Label($, {
-											left:4, right:4, top:4, bottom:4, style:fieldHintStyle, string:"How many chairs...", name:"hint"
-										})
-										]
+									}),
+									Label($, {
+										left:4, right:4, top:4, bottom:4, style:fieldHintStyle, string:"How many chairs...", name:"hint"
 									})
 									]
 								})
-							],
+								]
+							})],
 							}),
 						new Separator(),
-						//this.nameOfReservation = new reservation_line({name:"nameOfReservation",url: './assets/note.png', hint: "Name your reservation..."}),
 						Line($, {left:0,right:0,top:20,  
 							contents:[
-								Picture($,{height:60,width:60,left:5, url: './assets/note.png',aspect:'fit'}),
-								Container ($, { 
-									name:"nameField",width: 220, height: 50,left:5, skin: inputTextFieldSkin, 
-									contents: [
-									Scroller($, { 
-										left: 4, right: 4, top: 4, bottom: 4, active: true,name:"scroller",
-										behavior: Object.create(CONTROL.FieldScrollerBehavior.prototype), clip: true, contents: [
-										this.field= Label($, { width: 60,height: 40,left: 0, top: 0, bottom: 0,  skin: THEME.fieldLabelSkin, style: fieldStyle, 
-											editable: true,active: true, name:"nameOfReservation",
-											behavior: Object.create( CONTROL.FieldLabelBehavior.prototype, {
-												onEdited: { value: function(label){
-													this.data.nameOfReservation = label.string;
-													label.container.hint.visible = ( this.data.nameOfReservation.length == 0 );	
-												}},
-											}),
+							Picture($,{height:60,width:60,left:5, url: './assets/note.png',aspect:'fit'}),
+							Container ($, { 
+								name:"nameField",width: 220, height: 50,left:5, skin: inputTextFieldSkin, 
+								contents: [
+								Scroller($, { 
+									left: 4, right: 4, top: 4, bottom: 4, active: true,name:"scroller",
+									behavior: Object.create(CONTROL.FieldScrollerBehavior.prototype), clip: true, contents: [
+									this.field= Label($, { width: 60,height: 40,left: 0, top: 0, bottom: 0,  skin: THEME.fieldLabelSkin, style: fieldStyle, 
+										editable: true,active: true, name:"nameOfReservation",
+										behavior: Object.create( CONTROL.FieldLabelBehavior.prototype, {
+											onEdited: { value: function(label){
+												this.data.nameOfReservation = label.string;
+												label.container.hint.visible = ( this.data.nameOfReservation.length == 0 );	
+											}},
 										}),
-										Label($, {
-											left:4, right:4, top:4, bottom:4, style:fieldHintStyle, string:"Name your reservation...", name:"hint"
-										})
-										]
+									}),
+									Label($, {
+										left:4, right:4, top:4, bottom:4, style:fieldHintStyle, string:"Name your reservation...", name:"hint"
 									})
 									]
 								})
-							],
-							}),
-						new Separator(),
-						Container($, {  height: 50, width:280,top:40, skin: inputTextFieldSkin, active: true, 
-							behavior: Object.create(CONTROL.ButtonBehavior.prototype, {
-								onTap: { value: function(container) {
-								
-									if(this.data.numOfReservedSeats.length== 0){
-										var msg = "?msg= Number of reserved seats field is blank&title=Failed"
-										container.invoke(new Message("/failed" + msg));
-									}else if(isNaN(this.data.numOfReservedSeats)){
-										var msg = "?msg=" + this.data.numOfReservedSeats + " is NOT a number&title=Failed"
-										container.invoke(new Message("/failed" + msg));
-									}else if(isNaN(CafesData[id($.title)].openSeats)){
-										var msg = "?msg= Service can't reach the cafe at the moment...Try later&title=Failed"
-										container.invoke(new Message("/failed" + msg));
-									}else if( parseInt(this.data.numOfReservedSeats) > parseInt(CafesData[id($.title)].openSeats)){
-										var msg = "?msg= We only have " + CafesData[id($.title)].openSeats + " open seats&title=Failed"
-										container.invoke(new Message("/failed" + msg));
-									}else if(this.data.nameOfReservation.length== 0){
-										var msg = "?msg= Name of reservation field is blank&title=Failed"
-										container.invoke(new Message("/failed" + msg));
-									}else{
-										var msg = "?msg=Gotcha! Your " + this.data.numOfReservedSeats + " seats will be reserved for the next 20 minutes!&title=Success"
-										container.invoke(new Message("/success" + msg));
-										var params = "?user_id=" +user_id + "&numOfReservedSeats=" + this.data.numOfReservedSeats +"&nameOfReservation="+ this.data.nameOfReservation+ "&cafeId="+ id(CafesData[id($.title)].name) + "&cafeName=" + CafesData[id($.title)].name.replace(/[_\s]/g, '%20');
-										application.invoke(new Message(deviceURL +"reserve" + params), Message.JSON);
-									}
-									
-								}},
-								}),
-								contents: [
-								Label($, { width: 280,height: 50,skin: cafeInfoSkin, string: "Reserve",style: reserveButton}),
-								],
+								]
 							})
-					]
-				}),]
+							],
+						}),
+new Separator(),
+Container($, {  height: 50, width:280,top:40, skin: inputTextFieldSkin, active: true, 
+	behavior: Object.create(CONTROL.ButtonBehavior.prototype, {
+		onTap: { value: function(container) {
+			
+			if(this.data.numOfReservedSeats.length== 0){
+				var msg = "?msg= Number of reserved seats field is blank&title=Failed"
+				container.invoke(new Message("/failed" + msg));
+			}else if(isNaN(this.data.numOfReservedSeats)){
+				var msg = "?msg=" + this.data.numOfReservedSeats + " is NOT a number&title=Failed"
+				container.invoke(new Message("/failed" + msg));
+			}else if(isNaN(CafesData[id($.title)].openSeats)){
+				var msg = "?msg= Service can't reach the cafe at the moment...Try later&title=Failed"
+				container.invoke(new Message("/failed" + msg));
+			}else if( parseInt(this.data.numOfReservedSeats) > parseInt(CafesData[id($.title)].openSeats)){
+				var msg = "?msg= We only have " + CafesData[id($.title)].openSeats + " open seats&title=Failed"
+				container.invoke(new Message("/failed" + msg));
+			}else if(this.data.nameOfReservation.length== 0){
+				var msg = "?msg= Name of reservation field is blank&title=Failed"
+				container.invoke(new Message("/failed" + msg));
+			}else if(duplicateReservations(id($.title))){
+				var msg = "?msg= You already have made a reservation for this cafe &title=Failed"
+				container.invoke(new Message("/failed" + msg));
+			}else{
+				var msg = "?msg=Gotcha! Your " + this.data.numOfReservedSeats + " seats will be reserved for the next 20 minutes!&title=Success"
+				container.invoke(new Message("/success" + msg));
+				var params = "?user_id=" +user_id + "&numOfReservedSeats=" + this.data.numOfReservedSeats +
+										"&nameOfReservation="+ this.data.nameOfReservation+ "&cafeId="+ id(CafesData[id($.title)].name) +
+								 "&cafeName=" + CafesData[id($.title)].name.replace(/[_\s]/g, '%20');
+				application.invoke(new Message(deviceURL +"reserve" + params), Message.JSON);
+			}
+			
+		}},
+	}),
+contents: [
+Label($, { width: 280,height: 50,skin: cafeInfoSkin, string: "Reserve",style: reserveButton}),
+],
+})
+]
+}),]
 }),]
 }),
 Header($, { anchor: 'HEADER', }),
 ]
 }});
 var getKeys = function(obj){
-									   var keys = [];
-									   for(var key in obj){
-									      keys.push(key);
-									   }
-									   return keys;
-									}		
+	var keys = [];
+	for(var key in obj){
+		keys.push(key);
+	}
+	return keys;
+}		
 var Separator = Line.template(function($) { 
 	return { top:20,width:300, height: 1, skin: cafeInfoSkin, }})
 var reservation_line = Line.template(function($) { 
 	return {left:0,right:0,top:20,  
-							contents:[
-								Picture($,{height:60,width:60,left:5, url: $.url,aspect:'fit'}),
-								Container ($, { 
-									name:"nameField",width: 220, height: 50,left:5, skin: inputTextFieldSkin, 
-									contents: [
-									Scroller($, { 
-										left: 4, right: 4, top: 4, bottom: 4, active: true,name:"scroller",
-										behavior: Object.create(CONTROL.FieldScrollerBehavior.prototype), clip: true, contents: [
-										this.field= Label($, { width: 60,height: 40,left: 0, top: 0, bottom: 0,  skin: THEME.fieldLabelSkin, style: fieldStyle, 
-											editable: true,active: true, name:$.name,
-											behavior: Object.create( CONTROL.FieldLabelBehavior.prototype, {
-												onEdited: { value: function(label){
-													var name = label.name
-													
-													this.data[name] = label.string;
-													trace(this.data[name])
-													label.container.hint.visible = ( this.data[name].length == 0 );	
-												}},
-												
-											}),
-										}),
-										Label($, {
-											left:4, right:4, top:4, bottom:4, style:fieldHintStyle, string:$.hint, name:"hint"
-										})
-										]
-									})
-									]
-								})
+		contents:[
+		Picture($,{height:60,width:60,left:5, url: $.url,aspect:'fit'}),
+		Container ($, { 
+			name:"nameField",width: 220, height: 50,left:5, skin: inputTextFieldSkin, 
+			contents: [
+			Scroller($, { 
+				left: 4, right: 4, top: 4, bottom: 4, active: true,name:"scroller",
+				behavior: Object.create(CONTROL.FieldScrollerBehavior.prototype), clip: true, contents: [
+				this.field= Label($, { width: 60,height: 40,left: 0, top: 0, bottom: 0,  skin: THEME.fieldLabelSkin, style: fieldStyle, 
+					editable: true,active: true, name:$.name,
+					behavior: Object.create( CONTROL.FieldLabelBehavior.prototype, {
+						onEdited: { value: function(label){
+							var name = label.name
 							
-							],
-							}});
+							this.data[name] = label.string;
+							trace(this.data[name])
+							label.container.hint.visible = ( this.data[name].length == 0 );	
+						}},
+						
+					}),
+				}),
+				Label($, {
+					left:4, right:4, top:4, bottom:4, style:fieldHintStyle, string:$.hint, name:"hint"
+				})
+				]
+			})
+			]
+		})
+		
+		],
+	}});
 
 var reservation_line1 = Line.template(function($) { 
 	return {left:0,right:0, top:0,bottom:0,top:5, 

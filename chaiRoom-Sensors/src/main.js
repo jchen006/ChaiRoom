@@ -18,9 +18,6 @@ var roundTableIcon = '../assets/circle_table.png'
 var recTableIcon = '../assets/square_table.png'
 var lcdIcon = '../assets/lcd.png'
 
-//var chairOccupiedIcon = '../assets/chair-red.png'
-//var chairOpenIcon = '../assets/chair-green.png'
-//var chairReservedIcon = '../assets/chair-gray.png'
 
 var chairDetailIcon = '../assets/chair-detail.png'
 var backIcon = '../assets/blue-arrow.png'
@@ -50,7 +47,7 @@ var separatorSkin = new Skin({ fill: '#30A8BE',});
 
 // Handlers
 var changeChairStatus1 = function(n, currStatus, newStatus, newStyle, newReservationName){
-trace("changing status of: " + n + "chairs \n")
+	trace("changing status of: " + n + "chairs \n")
 	var cafe = model.data.chairs
 	var chairs = []
 	for (var table in cafe){
@@ -69,7 +66,7 @@ trace("changing status of: " + n + "chairs \n")
 	return chairs
 }
 var changeChairStatus = function(n, currStatus, newStatus, newStyle, newReservationName){
-trace("changing status of: " + n + " chairs \n")
+	trace("changing status of: " + n + " chairs \n")
 	var cafe = model.data.chairs
 	var chairs = []
 	var openChairs = {"best": [], "good": []}
@@ -80,13 +77,8 @@ trace("changing status of: " + n + " chairs \n")
 			for(var chair in cafe[table]){
 				
 				if (cafe[table][chair].status == currStatus ){
-					//cafe[table][chair].status = newStatus
-					//cafe[table][chair].style = newStyle
-					//cafe[table][chair].reservationName = newReservationName
-					
 					temp.push(cafe[table][chair])
 				}
-				
 				if (temp.length > n || temp.length == 4){
 					Array.prototype.push.apply(openChairs["best"],temp)
 				}else{
@@ -160,7 +152,7 @@ Handler.bind("/reserve", Object.create(Behavior.prototype, {
 			var numOfReservedSeats = query.numOfReservedSeats;
 			var reservedChairs = changeChairStatus(numOfReservedSeats,OPEN, RESERVED,reservedStyle,"By: " + nameOfReservation)
 			if (parseInt(numOfReservedSeats) < 0 ) return
-			model.data.openSeats = parseInt(model.data.openSeats) - parseInt(numOfReservedSeats)
+				model.data.openSeats = parseInt(model.data.openSeats) - parseInt(numOfReservedSeats)
 			model.data.reservedSeats = parseInt(model.data.reservedSeats) + parseInt(numOfReservedSeats);
 			
 			var new_reservation = {name: nameOfReservation,cafeId: id,cafeName:name, time:new Date(),numberOfSeats: numOfReservedSeats, seats: reservedChairs, active: true};
@@ -194,12 +186,12 @@ Handler.bind("/cancel", Object.create(Behavior.prototype, {
 	}
 }));
 var getKeys = function(obj){
-									   var keys = [];
-									   for(var key in obj){
-									      keys.push(key);
-									   }
-									   return keys;
-									}
+	var keys = [];
+	for(var key in obj){
+		keys.push(key);
+	}
+	return keys;
+}
 Handler.bind("/locateSeats", Object.create(Behavior.prototype, {
 	onInvoke: { value:
 		function(handler, message) {
@@ -210,7 +202,7 @@ Handler.bind("/locateSeats", Object.create(Behavior.prototype, {
 			var id = query.cafeId;
 			var n = query.n
 			if (n == 0) return
-			var nameOfReservation = query.nameOfReservation
+				var nameOfReservation = query.nameOfReservation
 			var reservationModel = model.data.reservationModel;
 			var reservations =reservationModel[user_id]
 			var seats 
@@ -218,21 +210,14 @@ Handler.bind("/locateSeats", Object.create(Behavior.prototype, {
 			for(var i in reservations){
 				if(reservations[i].cafeId === id && reservations[i].name === nameOfReservation && reservations[i].active){
 					seats = reservations[i].seats
-					
-					//while( n > 0){
-						trace(" n : " + n + "\n")
-						
 						for(var i in seats){
 							var seat = seats[i]
 							var chair = cafe[seat.table][seat.name]
-								var status = chair.status === OPEN? RESERVED : OPEN
-								chair.status = status
-							}
+							var status = chair.status === OPEN? RESERVED : OPEN
+							chair.status = status
+						}
 						application.distribute("onModelChanged");
-						
 						handler.wait( 500 )
-						
-					//}
 				}
 			}
 			
@@ -243,7 +228,6 @@ Handler.bind("/locateSeats", Object.create(Behavior.prototype, {
 		function(handler,message,json,data) {
 			trace("onComplete locating seats")
 			trace(this.data.n)
-			//var query = parseQuery( message.query );
 			var user_id = this.data.user_id;
 			var id = this.data.cafeId;
 			var nameOfReservation = this.data.nameOfReservation
@@ -258,31 +242,31 @@ Handler.bind("/locateSeats", Object.create(Behavior.prototype, {
 
 
 var checkExpiredReservations = function(r){
-			var now = new Date();
-			var cancelled = []
-			var valid = []
-			for(var i in r){
-				var reservation= r[i]
-				if(reservation.active){
-					var reservationTime = reservation.time;
-					var diff = parseInt(now.getTime()) - parseInt(reservationTime.getTime());
-					var minutes = Math.round(parseInt(diff)/60000);
-					if(minutes >= MINUTES_BEFORE_EXPIRED){
-						trace("reservation cancelled")
-						cancelled.push(reservation)
-						cancelReservation(reservation)
-					}else{
-						reservation.remainTime = MINUTES_BEFORE_EXPIRED - minutes
-						valid.push(reservation)
-					}
-				}
+	var now = new Date();
+	var cancelled = []
+	var valid = []
+	for(var i in r){
+		var reservation= r[i]
+		if(reservation.active){
+			var reservationTime = reservation.time;
+			var diff = parseInt(now.getTime()) - parseInt(reservationTime.getTime());
+			var minutes = Math.round(parseInt(diff)/60000);
+			if(minutes >= MINUTES_BEFORE_EXPIRED){
+				trace("reservation cancelled")
+				cancelled.push(reservation)
+				cancelReservation(reservation)
+			}else{
+				reservation.remainTime = MINUTES_BEFORE_EXPIRED - minutes
+				valid.push(reservation)
 			}
-			return {"cancelled":cancelled, "valid":valid };
+		}
 	}
+	return {"cancelled":cancelled, "valid":valid };
+}
 var cancelReservation = function(reservation){
 	var cancelledSeats = changeChairStatus(reservation.numberOfSeats,RESERVED, OPEN,openStyle,"")
 	if (reservation.active == false) return
-	reservation.active = false;
+		reservation.active = false;
 	model.data.reservedSeats = parseInt(model.data.reservedSeats) - parseInt(reservation.numberOfSeats) ;
 	application.distribute("onModelChanged");
 }
@@ -324,7 +308,7 @@ var MainScreen = Container.template(function($) { return {
 		contents: [
 		Line($,{  left:0,right:0, top:5,style: centerStyle,bottom:0,
 			contents: [
-				Picture($,{height:40,width:40,left:5, url: floorIcon,aspect: 'fit', active: true, behavior: 
+			Picture($,{height:40,width:40,left:5, url: floorIcon,aspect: 'fit', active: true, behavior: 
 				Object.create(CONTROL.ButtonBehavior.prototype, {
 					onTap: { value: function(container) {
 						trace("clicked")
@@ -332,9 +316,9 @@ var MainScreen = Container.template(function($) { return {
 						application.distribute("onModelChanged");
 						
 					}},
-					})
-				}),
-				this.cafeName = Label($, {left:30, style: titleStyle},),
+				})
+			}),
+			this.cafeName = Label($, {left:30, style: titleStyle},),
 			]}),
 		Line($,{  left:0,right:0, top:5,style: centerStyle,bottom:0,
 			contents: [
@@ -360,60 +344,60 @@ var MainScreen = Container.template(function($) { return {
 		}),
 		Line($, { left: 10, right: 10, height: 1.5, skin: separatorSkin, }),
 		Line($,{left:0,right:0, style: centerStyle, top:5,
-		contents: [
+			contents: [
 			Label($, {left:80, style: listStyle,string :"Total Seats: " },),
 			this.total = Label($, {left:40,  style: countStyle },),
 			]})
 		]})
-	],
-	behavior: Object.create(Behavior.prototype, {
-		onModelChanged: { value: function(container) {
-			container.available.string  =   String(model.data.openSeats) ;
-			container.reserved.string  =  String(model.data.reservedSeats) ;
-			container.occupied.string  =   String(model.data.occupiedSeats) ;
-			var total = parseInt(model.data.occupiedSeats) + parseInt(model.data.reservedSeats) + parseInt(model.data.openSeats) ;
-			container.total.string  =  String(total);
-			container.cafeName.string  = model.data.cafeName;
-		}},
-	}),
+],
+behavior: Object.create(Behavior.prototype, {
+	onModelChanged: { value: function(container) {
+		container.available.string  =   String(model.data.openSeats) ;
+		container.reserved.string  =  String(model.data.reservedSeats) ;
+		container.occupied.string  =   String(model.data.occupiedSeats) ;
+		var total = parseInt(model.data.occupiedSeats) + parseInt(model.data.reservedSeats) + parseInt(model.data.openSeats) ;
+		container.total.string  =  String(total);
+		container.cafeName.string  = model.data.cafeName;
+	}},
+}),
 }});
 var CafeFloor =  Container.template(function($) { return {
 	left:0, right:0, top:0, bottom:0,
 	skin: new Skin({ fill: "white" }),
 	contents: [
 	Line($,{left:0,right:0,top:5,
-			contents: [
-	Picture ($,{left:0,top:5,bottom:10,height:40,width:40,url: backIcon , active: true, behavior: 
-				Object.create(CONTROL.ButtonBehavior.prototype, {
+		contents: [
+		Picture ($,{left:0,top:5,bottom:10,height:40,width:40,url: backIcon , active: true, behavior: 
+			Object.create(CONTROL.ButtonBehavior.prototype, {
 				onTap: { value: function(container) {
-				application.remove(application.last)
+					application.remove(application.last)
 					
-			}},})
+				}},})
 		})
 		]})
 	]
-	}})
+}})
 var Table =  Container.template(function($) { return {
 	left:0, right:0, top:0, bottom:0,
 	contents: [
 	Picture ($,{height:$.h,width:$.w,url: $.icon })
 	]
-	}})
+}})
 var Chair = Container.template(function($) { return {
 	left:0, right:0, top:0, bottom:0,
 	contents: [
 	Picture ($,{height:15,width:30,url: $.icon })
 	]
-	}})
+}})
 
 var RoundTable  = Container.template(function($) { return {
 	height:85,width:85,right:$.right,top:$.top,
 	name :$.name,
 	skin: new Skin({ fill: "white" }),
 	contents: [
-		Picture ($,{height:65,width:65, url: roundTableIcon }),
-		Picture ($,{name: "chair1",left:0,height:30,width:15,url: chairIcon(OPEN,'v') , active: true, behavior: 
-			Object.create(CONTROL.ButtonBehavior.prototype, {
+	Picture ($,{height:65,width:65, url: roundTableIcon }),
+	Picture ($,{name: "chair1",left:0,height:30,width:15,url: chairIcon(OPEN,'v') , active: true, behavior: 
+		Object.create(CONTROL.ButtonBehavior.prototype, {
 			onTap: { value: function(container) {
 				
 				var tableName = container.container.name
@@ -422,9 +406,9 @@ var RoundTable  = Container.template(function($) { return {
 				application.add(new ChairDetail({style: chair.style,status: chair.status, reservationName: chair.reservationName}))
 				
 			}},})
-		}),
-		Picture ($,{name: "chair2",right:0,height:30,width:15,url: chairIcon(OPEN,'v') , active: true, behavior: 
-			Object.create(CONTROL.ButtonBehavior.prototype, {
+	}),
+	Picture ($,{name: "chair2",right:0,height:30,width:15,url: chairIcon(OPEN,'v') , active: true, behavior: 
+		Object.create(CONTROL.ButtonBehavior.prototype, {
 			onTap: { value: function(container) {
 				
 				var tableName = container.container.name
@@ -433,9 +417,9 @@ var RoundTable  = Container.template(function($) { return {
 				application.add(new ChairDetail({style: chair.style,status: chair.status, reservationName: chair.reservationName}))
 				
 			}},})
-			}),
-		Picture ($,{name: "chair3",top:0,height:15,width:30,url: chairIcon(OPEN,'h') , active: true, behavior: 
-			Object.create(CONTROL.ButtonBehavior.prototype, {
+	}),
+	Picture ($,{name: "chair3",top:0,height:15,width:30,url: chairIcon(OPEN,'h') , active: true, behavior: 
+		Object.create(CONTROL.ButtonBehavior.prototype, {
 			onTap: { value: function(container) {
 				
 				var tableName = container.container.name
@@ -444,8 +428,8 @@ var RoundTable  = Container.template(function($) { return {
 				application.add(new ChairDetail({style: chair.style,status: chair.status, reservationName: chair.reservationName}))
 				
 			}},})}),
-		Picture ($,{name: "chair4",bottom:0,height:15,width:30,url: chairIcon(OPEN,'h') , active: true, behavior: 
-			Object.create(CONTROL.ButtonBehavior.prototype, {
+	Picture ($,{name: "chair4",bottom:0,height:15,width:30,url: chairIcon(OPEN,'h') , active: true, behavior: 
+		Object.create(CONTROL.ButtonBehavior.prototype, {
 			onTap: { value: function(container) {
 				
 				var tableName = container.container.name
@@ -459,11 +443,11 @@ var RoundTable  = Container.template(function($) { return {
 		onCreate: { value: function(container, data) {
 			this.data = data;
 			if(!model.data.chairs.hasOwnProperty(container.name)){
-			model.data.chairs[container.name] = {chair1:{name:"chair1",table:container.name,status: OPEN,orientation:'v', style: openStyle,reservationName:''},
-												chair2:{name:"chair2",table:container.name,status: OPEN,orientation:'v', style: openStyle,reservationName:''},
-												chair3:{name:"chair3",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''},
-												chair4:{name:"chair4",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''}}
-												}
+				model.data.chairs[container.name] = {chair1:{name:"chair1",table:container.name,status: OPEN,orientation:'v', style: openStyle,reservationName:''},
+				chair2:{name:"chair2",table:container.name,status: OPEN,orientation:'v', style: openStyle,reservationName:''},
+				chair3:{name:"chair3",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''},
+				chair4:{name:"chair4",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''}}
+			}
 		}},
 		onModelChanged: { value: function(container) {
 			trace(container.name + " has changed \n")
@@ -483,37 +467,37 @@ var RoundTable  = Container.template(function($) { return {
 				return mergeURI(application.url , url) === uri
 			}
 			if(!isUrlEqual(chair1URL,chair1.url)){
-			trace("chair 1 changed status" + "\n")
+				trace("chair 1 changed status" + "\n")
 				chair1.url = chair1URL
-				}
+			}
 			if(!isUrlEqual(chair2URL,chair2.url)){
 				trace("chair 2 changed status" + "\n")
 				chair2.url = chair2URL
-				}
+			}
 			if(!isUrlEqual(chair3URL,chair3.url)){
-			trace("chair 3 changed status" + "\n")
+				trace("chair 3 changed status" + "\n")
 				chair3.url = chair3URL
-				}
+			}
 			if(!isUrlEqual(chair4URL,chair4.url)){
-			trace("chair 4 changed status" + "\n")
+				trace("chair 4 changed status" + "\n")
 				chair4.url = chair4URL
-				}
+			}
 		}},
 		onDisplaying: { value: function(container) {
 			application.distribute("onModelChanged");
 		}},
-		}),
-	
-	}})
-	
+	}),
+
+}})
+
 var RecTable  = Container.template(function($) { return {
 	height:62,width:75,right:$.right,top:$.top,
 	name :$.name,
 	skin: new Skin({ fill: "white" }),
 	contents: [
-		Picture ($,{height:85,width:75,url: recTableIcon }),
-		Picture ($,{name: "chair1",top:0,left:2,height:15,width:25,url: chairIcon(OPEN,'h') , active: true, behavior: 
-			Object.create(CONTROL.ButtonBehavior.prototype, {
+	Picture ($,{height:85,width:75,url: recTableIcon }),
+	Picture ($,{name: "chair1",top:0,left:2,height:15,width:25,url: chairIcon(OPEN,'h') , active: true, behavior: 
+		Object.create(CONTROL.ButtonBehavior.prototype, {
 			onTap: { value: function(container) {
 				
 				var tableName = container.container.name
@@ -522,9 +506,9 @@ var RecTable  = Container.template(function($) { return {
 				application.add(new ChairDetail({style: chair.style,status: chair.status, reservationName: chair.reservationName}))
 				
 			}},})
-		}),
-		Picture ($,{name: "chair2",top:0,right:2,height:15,width:25,url: chairIcon(OPEN,'h') , active: true, behavior: 
-			Object.create(CONTROL.ButtonBehavior.prototype, {
+	}),
+	Picture ($,{name: "chair2",top:0,right:2,height:15,width:25,url: chairIcon(OPEN,'h') , active: true, behavior: 
+		Object.create(CONTROL.ButtonBehavior.prototype, {
 			onTap: { value: function(container) {
 				
 				var tableName = container.container.name
@@ -533,9 +517,9 @@ var RecTable  = Container.template(function($) { return {
 				application.add(new ChairDetail({style: chair.style,status: chair.status, reservationName: chair.reservationName}))
 				
 			}},})
-			}),
-		Picture ($,{name: "chair3",bottom:0,left:2,height:15,width:25,url: chairIcon(OPEN,'h') , active: true, behavior: 
-			Object.create(CONTROL.ButtonBehavior.prototype, {
+	}),
+	Picture ($,{name: "chair3",bottom:0,left:2,height:15,width:25,url: chairIcon(OPEN,'h') , active: true, behavior: 
+		Object.create(CONTROL.ButtonBehavior.prototype, {
 			onTap: { value: function(container) {
 				
 				var tableName = container.container.name
@@ -544,8 +528,8 @@ var RecTable  = Container.template(function($) { return {
 				application.add(new ChairDetail({style: chair.style,status: chair.status, reservationName: chair.reservationName}))
 				
 			}},})}),
-		Picture ($,{name: "chair4",bottom:0,right:2,height:15,width:25,url: chairIcon(OPEN,'h') , active: true, behavior: 
-			Object.create(CONTROL.ButtonBehavior.prototype, {
+	Picture ($,{name: "chair4",bottom:0,right:2,height:15,width:25,url: chairIcon(OPEN,'h') , active: true, behavior: 
+		Object.create(CONTROL.ButtonBehavior.prototype, {
 			onTap: { value: function(container) {
 				
 				var tableName = container.container.name
@@ -560,10 +544,10 @@ var RecTable  = Container.template(function($) { return {
 			this.data = data;
 			if(!model.data.chairs.hasOwnProperty(container.name)){
 				model.data.chairs[container.name] = {chair1:{name:"chair1",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''},
-												chair2:{name:"chair2",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''},
-												chair3:{name:"chair3",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''},
-												chair4:{name:"chair4",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''}}
-												}
+				chair2:{name:"chair2",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''},
+				chair3:{name:"chair3",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''},
+				chair4:{name:"chair4",table:container.name,status: OPEN,orientation:'h', style: openStyle,reservationName:''}}
+			}
 		}},
 		onModelChanged: { value: function(container) {
 			trace(container.name + " has changed \n")
@@ -583,52 +567,52 @@ var RecTable  = Container.template(function($) { return {
 				return mergeURI(application.url , url) === uri
 			}
 			if(!isUrlEqual(chair1URL,chair1.url)){
-			trace("chair 1 changed status to " + table.chair1.status +  "\n")
+				trace("chair 1 changed status to " + table.chair1.status +  "\n")
 				chair1.url = chair1URL
-				}
+			}
 			if(!isUrlEqual(chair2URL,chair2.url)){
 				trace("chair 2 changed status to " + table.chair2.status +  "\n")
 				chair2.url = chair2URL
-				}
+			}
 			if(!isUrlEqual(chair3URL,chair3.url)){
-			trace("chair 3 changed status to " + table.chair3.status +  "\n")
+				trace("chair 3 changed status to " + table.chair3.status +  "\n")
 				chair3.url = chair3URL
-				}
+			}
 			if(!isUrlEqual(chair4URL,chair4.url)){
-			trace("chair 4 changed status to " + table.chair4.status +  "\n")
+				trace("chair 4 changed status to " + table.chair4.status +  "\n")
 				chair4.url = chair4URL
-				}
+			}
 		}},
 		onDisplaying: { value: function(container) {
 			application.distribute("onModelChanged");
 		}},
-		}),
-	
-	}})
+	}),
+
+}})
 var ChairDetail  = Container.template(function($) { return {
 	left:0,right:0,bottom:0,top:0,
 	skin: new Skin({ fill: "white" }),
 	contents: [
-		Picture ($,{left:95,bottom:50,width:200,height:200,url: lcdIcon }),
-		Picture ($,{width:130,height:130,left:0,bottom:20,url: chairIconFlip($.status) }),
-		Column($,{style: centerStyle,width:100,height:100,top:60,left:145,
+	Picture ($,{left:95,bottom:50,width:200,height:200,url: lcdIcon }),
+	Picture ($,{width:130,height:130,left:0,bottom:20,url: chairIconFlip($.status) }),
+	Column($,{style: centerStyle,width:100,height:100,top:60,left:145,
 		contents:[
-			Label($,{style: $.style , string:$.status}),
-			Label($, {top:0,style: centerStyle, string:$.reservationName}),
-			
+		Label($,{style: $.style , string:$.status}),
+		Label($, {top:0,style: centerStyle, string:$.reservationName}),
+		
 		]
-		}),
-		Picture ($,{top:5,left:5,height:40,width:40,url: backIcon , active: true, behavior: 
-				Object.create(CONTROL.ButtonBehavior.prototype, {
-				onTap: { value: function(container) {
+	}),
+	Picture ($,{top:5,left:5,height:40,width:40,url: backIcon , active: true, behavior: 
+		Object.create(CONTROL.ButtonBehavior.prototype, {
+			onTap: { value: function(container) {
 				application.remove(application.last)
-					
+				
 			}},})
-		}),
+	}),
 	]
-	}})	
+}})	
 
-	
+
 
 // model
 var ApplicationBehavior = function(application, data, context) {
@@ -648,11 +632,11 @@ ApplicationBehavior.prototype =  Object.create(MODEL.ApplicationBehavior.prototy
 		
 		this.cafeFloor = new CafeFloor();
 		var table1 = new RoundTable({right:20,top:25, name:"table1"})
-			
+		
 		this.cafeFloor.add(table1)
 		this.cafeFloor.add(new RoundTable({right:20,top:140, name:"table2"}))
 		this.cafeFloor.add(new RoundTable({right:130,top:150, name:"table3"}))
-			
+		
 		this.cafeFloor.add(new RecTable({right:240,top:70, name:"table4"}))
 		this.cafeFloor.add(new RecTable({right:240,top:140, name:"table5"}))
 		application.distribute("onModelChanged");
